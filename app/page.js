@@ -37,29 +37,29 @@ function CalculatorSelector() {
     const getCalculatorComponent = () => {
         switch(calculator) {
             case 'sip':
-                return <SIPCalculator />
+                return <SIPCalculator isDarkMode={isDarkMode} />
             case 'fd':
-                return <FDCalculator />
+                return <FDCalculator isDarkMode={isDarkMode} />
             case 'cagr':
-                return <CAGRCalculator />
+                return <CAGRCalculator isDarkMode={isDarkMode} />
             case 'rd':
-                return <RDCalculator />
+                return <RDCalculator isDarkMode={isDarkMode} />
             case 'goal-sip':
-                return <GoalSIPCalculator />
+                return <GoalSIPCalculator isDarkMode={isDarkMode} />
             case 'fire':
-                return <FIRECalculator />
+                return <FIRECalculator isDarkMode={isDarkMode} />
             case 'hra':
-                return <HRACalculator />
+                return <HRACalculator isDarkMode={isDarkMode} />
             case 'mutual-fund':
-                return <MutualFundCalculator />
+                return <MutualFundCalculator isDarkMode={isDarkMode} />
             case 'tax':
-                return <TaxCalculator />
+                return <TaxCalculator isDarkMode={isDarkMode} />
             case 'loan':
-                return <LoanCalculator />
+                return <LoanCalculator isDarkMode={isDarkMode} />
             case 'mortgage':
-                return <MortgageCalculator />
+                return <MortgageCalculator isDarkMode={isDarkMode} />
             case 'compound':
-                return <CompoundInterestCalculator />
+                return <CompoundInterestCalculator isDarkMode={isDarkMode} />
             default:
                 return null
         }
@@ -77,7 +77,7 @@ function CalculatorSelector() {
 
     return (
         <div className="max-w-4xl mx-auto">
-            {React.cloneElement(CalculatorComponent, { isDarkMode })}
+            {CalculatorComponent}
         </div>
     )
 }

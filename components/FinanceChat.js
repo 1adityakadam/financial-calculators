@@ -7,6 +7,9 @@ export default function FinanceChat({ isDarkMode }) {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [lastMessageTime, setLastMessageTime] = useState(0);
+    const [spamWarnings, setSpamWarnings] = useState(0);
+    const [isBlocked, setIsBlocked] = useState(false);
 
     // Load messages from localStorage on component mount
     useEffect(() => {
@@ -23,8 +26,25 @@ export default function FinanceChat({ isDarkMode }) {
 
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
-        if (!input.trim() || isLoading) return;
+        if (!input.trim() || isLoading || isBlocked) return;
 
+        // Check for spam
+        const currentTime = Date.now();
+        const timeDiff = currentTime - lastMessageTime;
+
+        if (timeDiff < 2000) { // Less than 2 seconds
+            if (spamWarnings >= 2) {
+                setIsBlocked(true);
+                setError("You have been blocked due to multiple spam attempts. Please refresh the page to continue.");
+                return;
+            } else {
+                setSpamWarnings(prev => prev + 1);
+                setError(`Warning ${spamWarnings + 1}/2: Messages sent too quickly. Please wait a moment.`);
+                return;
+            }
+        }
+
+        setLastMessageTime(currentTime);
         const userMessage = input.trim();
         setInput('');
         setIsLoading(true);
@@ -86,7 +106,7 @@ export default function FinanceChat({ isDarkMode }) {
         } finally {
             setIsLoading(false);
         }
-    }, [input, isLoading, messages]);
+    }, [input, isLoading, messages, lastMessageTime, spamWarnings, isBlocked]);
 
     return (
         <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>

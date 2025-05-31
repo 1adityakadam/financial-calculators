@@ -39,9 +39,15 @@ const InvestmentChart = ({
             value: yAxisLabel, 
             angle: -90, 
             position: 'insideLeft',
-            style: { fill: isDarkMode ? '#9CA3AF' : '#4B5563' }
+            offset: 10,
+            style: { 
+              fill: isDarkMode ? '#9CA3AF' : '#4B5563',
+              textAnchor: 'middle',
+              fontSize: 12
+            }
           }}
           stroke={isDarkMode ? '#9CA3AF' : '#4B5563'}
+          width={80}
         />,
         <Tooltip 
           key="tooltip"

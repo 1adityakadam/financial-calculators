@@ -5,8 +5,9 @@ import { Calculator } from 'lucide-react';
 import InvestmentChart from './InvestmentChart';
 import CalculatorInput from './CalculatorInput';
 import { formatCurrency, formatPercent, getMonthlyRate } from '../utils/formatters';
+import InflationAdjustedReturns from './InflationAdjustedReturns';
 
-const MortgageCalculator = () => {
+const MortgageCalculator = ({ isDarkMode }) => {
   const [formData, setFormData] = useState({
     homePrice: 300000,
     downPayment: 60000,
@@ -102,29 +103,29 @@ const MortgageCalculator = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+    <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>
       <div className="flex items-center gap-3 mb-6">
-        <Calculator className="text-blue-600" size={28} />
-        <h2 className="text-2xl font-bold text-gray-800">Mortgage Calculator</h2>
+        <Calculator className={`${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} size={28} />
+        <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Mortgage Calculator</h2>
       </div>
 
       {/* Results Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-green-50 p-4 rounded-lg text-center">
-          <div className="text-sm text-gray-600 mb-1">Principal & Interest</div>
-          <div className="text-2xl font-bold text-green-600">
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+          <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Principal & Interest</div>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
             {formatCurrency(results.monthlyPayment)}
           </div>
         </div>
-        <div className="bg-blue-50 p-4 rounded-lg text-center">
-          <div className="text-sm text-gray-600 mb-1">Monthly Escrow</div>
-          <div className="text-2xl font-bold text-blue-600">
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+          <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Monthly Escrow</div>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
             {formatCurrency((formData.propertyTax / 12) + (formData.insurance / 12))}
           </div>
         </div>
-        <div className="bg-purple-50 p-4 rounded-lg text-center">
-          <div className="text-sm text-gray-600 mb-1">Total Payment</div>
-          <div className="text-2xl font-bold text-purple-600">
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+          <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Total Payment</div>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
             {formatCurrency(results.totalMonthlyPayment)}
           </div>
         </div>
@@ -139,6 +140,7 @@ const MortgageCalculator = () => {
           type="currency"
           prefix="$"
           placeholder="0.00"
+          isDarkMode={isDarkMode}
         />
 
         <CalculatorInput
@@ -148,6 +150,7 @@ const MortgageCalculator = () => {
           type="currency"
           prefix="$"
           placeholder="0.00"
+          isDarkMode={isDarkMode}
         />
 
         <CalculatorInput
@@ -159,6 +162,7 @@ const MortgageCalculator = () => {
           step="0.1"
           min="0"
           max="30"
+          isDarkMode={isDarkMode}
         />
 
         <CalculatorInput
@@ -169,6 +173,7 @@ const MortgageCalculator = () => {
           suffix=" years"
           min="15"
           max="30"
+          isDarkMode={isDarkMode}
         />
 
         <CalculatorInput
@@ -178,6 +183,7 @@ const MortgageCalculator = () => {
           type="currency"
           prefix="$"
           placeholder="0.00"
+          isDarkMode={isDarkMode}
         />
 
         <CalculatorInput
@@ -187,11 +193,12 @@ const MortgageCalculator = () => {
           type="currency"
           prefix="$"
           placeholder="0.00"
+          isDarkMode={isDarkMode}
         />
       </div>
 
       {/* Explanation */}
-      <div className="mb-8 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
+      <div className={`mb-8 p-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-md text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
         <p>
           For a ${formData.homePrice.toLocaleString()} home with ${formData.downPayment.toLocaleString()} down payment at {formData.interestRate}% interest,
           your monthly payment will be ${Math.round(results.monthlyPayment).toLocaleString()} (principal & interest)
@@ -200,6 +207,14 @@ const MortgageCalculator = () => {
         </p>
       </div>
 
+      {/* Inflation-Adjusted Returns */}
+      <InflationAdjustedReturns
+        futureValue={formData.homePrice}
+        years={formData.loanTerm}
+        isDarkMode={isDarkMode}
+        nominalReturn={formData.interestRate}
+      />
+
       {/* Chart */}
       <InvestmentChart 
         data={results.chartData}
@@ -207,10 +222,11 @@ const MortgageCalculator = () => {
         stacked={false}
         height={400}
         yAxisLabel="Amount ($)"
+        isDarkMode={isDarkMode}
         series={[
-          { key: 'balance', name: 'Loan Balance', color: '#EF4444' },
-          { key: 'equity', name: 'Home Equity', color: '#10B981' },
-          { key: 'interest', name: 'Interest Paid', color: '#3B82F6' }
+          { key: 'balance', name: 'Remaining Balance', color: isDarkMode ? '#EF4444' : '#DC2626' },
+          { key: 'equity', name: 'Home Equity', color: isDarkMode ? '#34D399' : '#10B981' },
+          { key: 'interest', name: 'Interest Paid', color: isDarkMode ? '#60A5FA' : '#3B82F6' }
         ]}
       />
     </div>

@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { Calculator } from 'lucide-react';
 import InvestmentChart from './InvestmentChart';
 import CalculatorInput from './CalculatorInput';
+import InflationAdjustedReturns from './InflationAdjustedReturns';
 import { formatCurrency, formatPercent } from '../utils/formatters';
 
-const CompoundInterestCalculator = () => {
+const CompoundInterestCalculator = ({ isDarkMode }) => {
   const [formData, setFormData] = useState({
     principal: 10000,
     annualContribution: 1200,
@@ -87,29 +88,29 @@ const CompoundInterestCalculator = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+    <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>
       <div className="flex items-center gap-3 mb-6">
-        <Calculator className="text-blue-600" size={28} />
-        <h2 className="text-2xl font-bold text-gray-800">Compound Interest Calculator</h2>
+        <Calculator className={`${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} size={28} />
+        <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Compound Interest Calculator</h2>
       </div>
 
       {/* Results Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-green-50 p-4 rounded-lg text-center">
-          <div className="text-sm text-gray-600 mb-1">Total Investment</div>
-          <div className="text-2xl font-bold text-green-600">
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+          <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Total Investment</div>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
             {formatCurrency(results.totalContributions)}
           </div>
         </div>
-        <div className="bg-blue-50 p-4 rounded-lg text-center">
-          <div className="text-sm text-gray-600 mb-1">Total Interest</div>
-          <div className="text-2xl font-bold text-blue-600">
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+          <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Total Interest</div>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
             {formatCurrency(results.totalInterest)}
           </div>
         </div>
-        <div className="bg-purple-50 p-4 rounded-lg text-center">
-          <div className="text-sm text-gray-600 mb-1">Future Value</div>
-          <div className="text-2xl font-bold text-purple-600">
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+          <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Future Value</div>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
             {formatCurrency(results.futureValue)}
           </div>
         </div>
@@ -124,6 +125,7 @@ const CompoundInterestCalculator = () => {
           type="currency"
           prefix="$"
           placeholder="0.00"
+          isDarkMode={isDarkMode}
         />
 
         <CalculatorInput
@@ -133,6 +135,7 @@ const CompoundInterestCalculator = () => {
           type="currency"
           prefix="$"
           placeholder="0.00"
+          isDarkMode={isDarkMode}
         />
 
         <CalculatorInput
@@ -144,6 +147,7 @@ const CompoundInterestCalculator = () => {
           step="0.1"
           min="0"
           max="30"
+          isDarkMode={isDarkMode}
         />
 
         <CalculatorInput
@@ -154,16 +158,21 @@ const CompoundInterestCalculator = () => {
           suffix=" years"
           min="1"
           max="50"
+          isDarkMode={isDarkMode}
         />
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-2`}>
             Compounding Frequency
           </label>
           <select
             value={formData.compoundingFrequency}
             onChange={(e) => handleInputChange('compoundingFrequency', parseInt(e.target.value))}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className={`block w-full rounded-md ${
+              isDarkMode 
+                ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                : 'bg-white border-gray-300 text-gray-700'
+            } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors duration-200`}
           >
             {compoundingOptions.map(option => (
               <option key={option.value} value={option.value}>
@@ -175,7 +184,7 @@ const CompoundInterestCalculator = () => {
       </div>
 
       {/* Explanation */}
-      <div className="mb-8 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
+      <div className={`mb-8 p-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-md text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
         <p>
           An initial investment of {formatCurrency(formData.principal)} with annual contributions of {formatCurrency(formData.annualContribution)},
           compounding {formData.compoundingFrequency === 1 ? 'annually' : 
@@ -186,6 +195,14 @@ const CompoundInterestCalculator = () => {
         </p>
       </div>
 
+      {/* Inflation-Adjusted Returns */}
+      <InflationAdjustedReturns
+        futureValue={results.futureValue}
+        years={formData.years}
+        isDarkMode={isDarkMode}
+        nominalReturn={formData.rate}
+      />
+
       {/* Chart */}
       <InvestmentChart 
         data={results.chartData}
@@ -193,9 +210,10 @@ const CompoundInterestCalculator = () => {
         stacked={true}
         height={400}
         yAxisLabel="Amount ($)"
+        isDarkMode={isDarkMode}
         series={[
-          { key: 'invested', name: 'Total Contributions', color: '#10B981' },
-          { key: 'returns', name: 'Interest Earned', color: '#3B82F6' }
+          { key: 'invested', name: 'Total Contributions', color: isDarkMode ? '#34D399' : '#10B981' },
+          { key: 'returns', name: 'Interest Earned', color: isDarkMode ? '#60A5FA' : '#3B82F6' }
         ]}
       />
     </div>

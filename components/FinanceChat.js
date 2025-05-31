@@ -2,24 +2,24 @@
 import { useState, useCallback, useEffect } from 'react';
 import { MessageCircle, AlertCircle } from 'lucide-react';
 
-export default function FinanceChat() {
+export default function FinanceChat({ isDarkMode }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [isDarkMode, setIsDarkMode] = useState(false);
 
+    // Load messages from localStorage on component mount
     useEffect(() => {
-        const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        setIsDarkMode(darkModeMediaQuery.matches);
-
-        const handleChange = (e) => {
-            setIsDarkMode(e.matches);
-        };
-
-        darkModeMediaQuery.addEventListener('change', handleChange);
-        return () => darkModeMediaQuery.removeEventListener('change', handleChange);
+        const savedMessages = localStorage.getItem('financeChat');
+        if (savedMessages) {
+            setMessages(JSON.parse(savedMessages));
+        }
     }, []);
+
+    // Save messages to localStorage whenever they change
+    useEffect(() => {
+        localStorage.setItem('financeChat', JSON.stringify(messages));
+    }, [messages]);
 
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
@@ -91,25 +91,25 @@ export default function FinanceChat() {
     return (
         <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>
             <div className="flex items-center gap-2 mb-6">
-                <MessageCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                <MessageCircle className={`w-6 h-6 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
                 <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                     Financial Assistant (Powered by Gemini)
                 </h2>
             </div>
 
             {error && (
-                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                     <div>
-                        <p className="text-red-700 dark:text-red-300 font-semibold">Error</p>
-                        <p className="text-red-600 dark:text-red-400">{error}</p>
+                        <p className="text-red-700 font-semibold">Error</p>
+                        <p className="text-red-600">{error}</p>
                     </div>
                 </div>
             )}
 
             <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto">
                 {messages.length === 0 && (
-                    <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-emerald-900/50 text-emerald-200' : 'bg-emerald-50 text-emerald-800'}`}>
+                    <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-emerald-50 text-emerald-800'}`}>
                         <p className="font-semibold mb-2">Welcome to your Financial Assistant! 👋</p>
                         <p>I can help you with:</p>
                         <ul className="list-disc list-inside mt-2 space-y-1">
@@ -128,25 +128,25 @@ export default function FinanceChat() {
                         className={`p-4 rounded-lg ${
                             message.role === 'assistant'
                                 ? isDarkMode 
-                                    ? 'bg-emerald-900/50 text-emerald-200' 
+                                    ? 'bg-gray-700 text-gray-200' 
                                     : 'bg-emerald-50 text-emerald-800'
                                 : isDarkMode
-                                    ? 'bg-gray-700 text-gray-200'
+                                    ? 'bg-gray-600 text-gray-200'
                                     : 'bg-gray-50 text-gray-800'
                         }`}
                     >
-                        <p className="text-sm font-semibold mb-1">
+                        <p className={`text-sm font-semibold mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                             {message.role === 'assistant' ? 'AI Assistant' : 'You'}
                         </p>
                         <p className="whitespace-pre-wrap">{message.content}</p>
                     </div>
                 ))}
                 {isLoading && (
-                    <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-emerald-900/50' : 'bg-emerald-50'}`}>
+                    <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'}`}>
                         <div className="animate-pulse flex space-x-2">
-                            <div className={`h-2 w-2 rounded-full ${isDarkMode ? 'bg-emerald-400' : 'bg-emerald-400'}`}></div>
-                            <div className={`h-2 w-2 rounded-full ${isDarkMode ? 'bg-emerald-400' : 'bg-emerald-400'}`}></div>
-                            <div className={`h-2 w-2 rounded-full ${isDarkMode ? 'bg-emerald-400' : 'bg-emerald-400'}`}></div>
+                            <div className={`h-2 w-2 ${isDarkMode ? 'bg-emerald-400' : 'bg-emerald-400'} rounded-full`}></div>
+                            <div className={`h-2 w-2 ${isDarkMode ? 'bg-emerald-400' : 'bg-emerald-400'} rounded-full`}></div>
+                            <div className={`h-2 w-2 ${isDarkMode ? 'bg-emerald-400' : 'bg-emerald-400'} rounded-full`}></div>
                         </div>
                     </div>
                 )}
@@ -157,21 +157,21 @@ export default function FinanceChat() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask about financial calculations, investment strategies, or tax planning..."
-                    className={`flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                    className={`flex-1 p-2 border ${
                         isDarkMode 
-                            ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' 
-                            : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
-                    }`}
+                            ? 'bg-gray-700 border-gray-600 text-gray-200 focus:ring-emerald-400' 
+                            : 'bg-white border-gray-300 text-gray-800 focus:ring-emerald-500'
+                    } rounded-md focus:outline-none focus:ring-2 transition-colors duration-200`}
                 />
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className={`px-4 py-2 bg-emerald-600 text-white rounded-md ${
-                        isLoading 
-                            ? 'opacity-50 cursor-not-allowed' 
-                            : isDarkMode
-                                ? 'hover:bg-emerald-700'
-                                : 'hover:bg-emerald-700'
+                    className={`px-4 py-2 ${
+                        isDarkMode
+                            ? 'bg-emerald-500 hover:bg-emerald-600'
+                            : 'bg-emerald-600 hover:bg-emerald-700'
+                    } text-white rounded-md ${
+                        isLoading ? 'opacity-50 cursor-not-allowed' : ''
                     } transition-colors duration-200`}
                 >
                     Send

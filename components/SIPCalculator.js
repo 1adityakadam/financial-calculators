@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { Calculator } from 'lucide-react'
 import InvestmentChart from './InvestmentChart'
 
-export default function SIPCalculator() {
+export default function SIPCalculator({ isDarkMode }) {
   const [formData, setFormData] = useState({
     method: 'sip',
     monthlyAmount: 500,
@@ -18,20 +18,6 @@ export default function SIPCalculator() {
     totalAmount: 0,
     chartData: []
   })
-
-  const [isDarkMode, setIsDarkMode] = useState(false)
-
-  useEffect(() => {
-    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    setIsDarkMode(darkModeMediaQuery.matches)
-
-    const handleChange = (e) => {
-      setIsDarkMode(e.matches)
-    }
-
-    darkModeMediaQuery.addEventListener('change', handleChange)
-    return () => darkModeMediaQuery.removeEventListener('change', handleChange)
-  }, [])
 
   const calculateInvestment = () => {
     const { method, monthlyAmount, lumpSumAmount, expectedReturn, timePeriod } = formData
@@ -119,27 +105,27 @@ export default function SIPCalculator() {
   }
 
   return (
-    <div className={`calculator-card max-w-4xl mx-auto ${isDarkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-800'}`}>
+    <div className={`calculator-card max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>
       <div className="flex items-center gap-3 mb-6">
         <Calculator className={`${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} size={28} />
-        <h2 className="text-2xl font-bold">US Investment Calculator</h2>
+        <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>US Investment Calculator</h2>
       </div>
 
       {/* Effective Returns Display */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className={`${isDarkMode ? 'bg-emerald-900/30' : 'bg-emerald-50'} p-4 rounded-lg text-center`}>
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
           <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Invested Amount</div>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
             ${results.investedAmount.toLocaleString()}
           </div>
         </div>
-        <div className={`${isDarkMode ? 'bg-emerald-900/30' : 'bg-emerald-50'} p-4 rounded-lg text-center`}>
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
           <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Returns Generated</div>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
             ${results.returnsGenerated.toLocaleString()}
           </div>
         </div>
-        <div className={`${isDarkMode ? 'bg-emerald-900/30' : 'bg-emerald-50'} p-4 rounded-lg text-center`}>
+        <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
           <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Total Amount</div>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
             ${results.totalAmount.toLocaleString()}
@@ -150,7 +136,7 @@ export default function SIPCalculator() {
       {/* Input Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div>
-          <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-2`}>
             Investment Method
           </label>
           <select 
@@ -158,7 +144,7 @@ export default function SIPCalculator() {
               isDarkMode 
                 ? 'bg-gray-700 border-gray-600 text-gray-200' 
                 : 'bg-white border-gray-300 text-gray-700'
-            }`}
+            } focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors duration-200`}
             value={formData.method}
             onChange={(e) => setFormData(prev => ({ ...prev, method: e.target.value }))}
           >
@@ -169,98 +155,86 @@ export default function SIPCalculator() {
 
         {formData.method === 'sip' ? (
           <div>
-            <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-2`}>
               Monthly SIP Amount ($)
             </label>
-            <div className="flex items-center gap-2">
-              <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>$</span>
-              <input
-                type="number"
-                min="100"
-                max="5000"
-                value={formData.monthlyAmount}
-                onChange={(e) => handleInputChange('monthlyAmount', e.target.value)}
-                className={`flex-1 p-2 border rounded-md ${
-                  isDarkMode 
-                    ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                    : 'bg-white border-gray-300 text-gray-700'
-                }`}
-                placeholder="Enter amount between $100-$5000"
-              />
-            </div>
-            <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Min: $100 | Max: $5,000</div>
+            <input
+              type="number"
+              min="100"
+              max="5000"
+              value={formData.monthlyAmount}
+              onChange={(e) => handleInputChange('monthlyAmount', e.target.value)}
+              className={`w-full p-2 border rounded-md ${
+                isDarkMode 
+                  ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                  : 'bg-white border-gray-300 text-gray-700'
+              } focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors duration-200`}
+              placeholder="Enter amount between $100-$5000"
+            />
+            <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Min: $100 | Max: $5,000</div>
           </div>
         ) : (
           <div>
-            <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-2`}>
               Lump Sum Amount ($)
             </label>
-            <div className="flex items-center gap-2">
-              <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>$</span>
-              <input
-                type="number"
-                min="1000"
-                max="100000"
-                step="1000"
-                value={formData.lumpSumAmount}
-                onChange={(e) => handleInputChange('lumpSumAmount', e.target.value)}
-                className={`flex-1 p-2 border rounded-md ${
-                  isDarkMode 
-                    ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                    : 'bg-white border-gray-300 text-gray-700'
-                }`}
-                placeholder="Enter amount between $1,000-$100,000"
-              />
-            </div>
-            <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Min: $1,000 | Max: $100,000</div>
+            <input
+              type="number"
+              min="1000"
+              max="100000"
+              step="1000"
+              value={formData.lumpSumAmount}
+              onChange={(e) => handleInputChange('lumpSumAmount', e.target.value)}
+              className={`w-full p-2 border rounded-md ${
+                isDarkMode 
+                  ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                  : 'bg-white border-gray-300 text-gray-700'
+              } focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors duration-200`}
+              placeholder="Enter amount between $1,000-$100,000"
+            />
+            <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Min: $1,000 | Max: $100,000</div>
           </div>
         )}
 
         <div>
-          <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-2`}>
             Expected Return (% per year)
           </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min="1"
-              max="20"
-              step="0.5"
-              value={formData.expectedReturn}
-              onChange={(e) => handleInputChange('expectedReturn', e.target.value)}
-              className={`flex-1 p-2 border rounded-md ${
-                isDarkMode 
-                  ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                  : 'bg-white border-gray-300 text-gray-700'
-              }`}
-              placeholder="Enter return between 1-20%"
-            />
-            <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>%</span>
-          </div>
-          <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Min: 1% | Max: 20%</div>
+          <input
+            type="number"
+            min="1"
+            max="20"
+            step="0.5"
+            value={formData.expectedReturn}
+            onChange={(e) => handleInputChange('expectedReturn', e.target.value)}
+            className={`w-full p-2 border rounded-md ${
+              isDarkMode 
+                ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                : 'bg-white border-gray-300 text-gray-700'
+            } focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors duration-200`}
+            placeholder="Enter return between 1-20%"
+          />
+          <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Min: 1% | Max: 20%</div>
         </div>
 
         <div>
-          <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-2`}>
             Time Period (Years)
           </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min="1"
-              max="30"
-              value={formData.timePeriod}
-              onChange={(e) => handleInputChange('timePeriod', e.target.value)}
-              className={`flex-1 p-2 border rounded-md ${
-                isDarkMode 
-                  ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                  : 'bg-white border-gray-300 text-gray-700'
-              }`}
-              placeholder="Enter years between 1-30"
-            />
-            <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>years</span>
-          </div>
-          <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Min: 1 year | Max: 30 years</div>
+          <input
+            type="number"
+            min="1"
+            max="30"
+            value={formData.timePeriod}
+            onChange={(e) => handleInputChange('timePeriod', e.target.value)}
+            className={`w-full p-2 border rounded-md ${
+              isDarkMode 
+                ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                : 'bg-white border-gray-300 text-gray-700'
+            } focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors duration-200`}
+            placeholder="Enter years between 1-30"
+          />
+          <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Min: 1 year | Max: 30 years</div>
         </div>
       </div>
 

@@ -49,7 +49,7 @@ const calculateTaxForBrackets = (income, brackets) => {
     return totalTax;
 };
 
-const TaxCalculator = () => {
+const TaxCalculator = ({ isDarkMode }) => {
     const [income, setIncome] = useState('');
     const [filingStatus, setFilingStatus] = useState('single');
     const [state, setState] = useState('CA');
@@ -109,38 +109,46 @@ const TaxCalculator = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>
             <div className="flex items-center gap-2 mb-6">
-                <Calculator className="w-6 h-6 text-blue-600" />
-                <h2 className="text-2xl font-bold text-gray-800">Tax Calculator 2024</h2>
+                <Calculator className={`w-6 h-6 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Tax Calculator</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-1`}>
                             Annual Income
                         </label>
                         <div className="relative">
-                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                            <span className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>$</span>
                             <input
                                 type="text"
                                 value={income}
                                 onChange={handleIncomeChange}
-                                className="pl-8 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className={`pl-8 w-full p-2 border rounded-md ${
+                                    isDarkMode 
+                                        ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                                        : 'bg-white border-gray-300 text-gray-700'
+                                } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors duration-200`}
                                 placeholder="Enter your annual income"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-1`}>
                             Filing Status
                         </label>
                         <select
                             value={filingStatus}
                             onChange={(e) => setFilingStatus(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className={`w-full p-2 border rounded-md ${
+                                isDarkMode 
+                                    ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                                    : 'bg-white border-gray-300 text-gray-700'
+                            } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors duration-200`}
                         >
                             <option value="single">Single</option>
                             <option value="married">Married Filing Jointly</option>
@@ -148,13 +156,17 @@ const TaxCalculator = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-1`}>
                             State
                         </label>
                         <select
                             value={state}
                             onChange={(e) => setState(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className={`w-full p-2 border rounded-md ${
+                                isDarkMode 
+                                    ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                                    : 'bg-white border-gray-300 text-gray-700'
+                            } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors duration-200`}
                         >
                             {Object.entries(STATE_TAX_DATA).map(([code, { name }]) => (
                                 <option key={code} value={code}>
@@ -165,13 +177,17 @@ const TaxCalculator = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-1`}>
                             Deduction Type
                         </label>
                         <select
                             value={deductionType}
                             onChange={(e) => setDeductionType(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className={`w-full p-2 border rounded-md ${
+                                isDarkMode 
+                                    ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                                    : 'bg-white border-gray-300 text-gray-700'
+                            } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors duration-200`}
                         >
                             <option value="standard">Standard Deduction</option>
                             <option value="itemized">Itemized Deductions</option>
@@ -180,16 +196,20 @@ const TaxCalculator = () => {
 
                     {deductionType === 'itemized' && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-1`}>
                                 Itemized Deductions Total
                             </label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                                <span className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>$</span>
                                 <input
                                     type="text"
                                     value={itemizedDeductions}
                                     onChange={handleItemizedDeductionsChange}
-                                    className="pl-8 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className={`pl-8 w-full p-2 border rounded-md ${
+                                        isDarkMode 
+                                            ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                                            : 'bg-white border-gray-300 text-gray-700'
+                                    } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors duration-200`}
                                     placeholder="Enter total itemized deductions"
                                 />
                             </div>
@@ -198,51 +218,55 @@ const TaxCalculator = () => {
 
                     <button
                         onClick={calculateTax}
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        className={`w-full ${
+                            isDarkMode 
+                                ? 'bg-emerald-600 hover:bg-emerald-700' 
+                                : 'bg-emerald-600 hover:bg-emerald-700'
+                        } text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors duration-200`}
                     >
                         Calculate Tax
                     </button>
                 </div>
 
                 {results && (
-                    <div className="bg-gray-50 p-6 rounded-lg space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Tax Summary</h3>
+                    <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-6 rounded-lg space-y-4 transition-colors duration-200`}>
+                        <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} mb-4`}>Tax Summary</h3>
                         
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <p className="text-sm text-gray-600">Taxable Income:</p>
-                                <p className="text-lg font-semibold">${formatCurrency(results.taxableIncome)}</p>
+                                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Taxable Income:</p>
+                                <p className={`text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>${formatCurrency(results.taxableIncome)}</p>
                             </div>
                             
                             <div>
-                                <p className="text-sm text-gray-600">Federal Tax:</p>
-                                <p className="text-lg font-semibold">${formatCurrency(results.federalTax)}</p>
+                                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Federal Tax:</p>
+                                <p className={`text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>${formatCurrency(results.federalTax)}</p>
                             </div>
                             
                             <div>
-                                <p className="text-sm text-gray-600">State Tax ({STATE_TAX_DATA[state].name}):</p>
-                                <p className="text-lg font-semibold">${formatCurrency(results.stateTax)}</p>
+                                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>State Tax ({STATE_TAX_DATA[state].name}):</p>
+                                <p className={`text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>${formatCurrency(results.stateTax)}</p>
                             </div>
                             
                             <div>
-                                <p className="text-sm text-gray-600">Total Tax:</p>
-                                <p className="text-lg font-semibold">${formatCurrency(results.totalTax)}</p>
+                                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Total Tax:</p>
+                                <p className={`text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>${formatCurrency(results.totalTax)}</p>
                             </div>
                             
                             <div>
-                                <p className="text-sm text-gray-600">Effective Tax Rate:</p>
-                                <p className="text-lg font-semibold">{results.effectiveRate}%</p>
+                                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Effective Tax Rate:</p>
+                                <p className={`text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{results.effectiveRate}%</p>
                             </div>
                             
                             <div>
-                                <p className="text-sm text-gray-600">Take-Home Income:</p>
-                                <p className="text-lg font-semibold">${formatCurrency(results.takeHome)}</p>
+                                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Take-Home Income:</p>
+                                <p className={`text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>${formatCurrency(results.takeHome)}</p>
                             </div>
                         </div>
 
-                        <div className="mt-4 p-4 bg-blue-50 rounded-md">
-                            <p className="text-sm text-blue-800">
-                                Note: This is an estimate based on 2024 tax brackets. Actual tax liability may vary based on credits, additional deductions, and other factors.
+                        <div className={`mt-4 p-4 ${isDarkMode ? 'bg-gray-600' : 'bg-emerald-50'} rounded-md transition-colors duration-200`}>
+                            <p className={`text-sm ${isDarkMode ? 'text-gray-200' : 'text-emerald-800'}`}>
+                                Note: This is an estimate based on current tax brackets. Actual tax liability may vary based on credits, additional deductions, and other factors.
                             </p>
                         </div>
                     </div>

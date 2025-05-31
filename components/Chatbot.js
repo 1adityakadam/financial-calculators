@@ -11,7 +11,7 @@ export default function Chatbot() {
     initialMessages: [{
       id: '1',
       role: 'assistant',
-      content: 'Hi! I\'m your financial calculator assistant. I can help you with questions about SIP investments, tax calculations, retirement planning, and more. What would you like to know?'
+      content: 'Hi! I\'m your financial assistant. I can help you with questions about SIP investments, tax calculations, retirement planning, and more. What would you like to know?'
     }]
   })
 

@@ -4,12 +4,12 @@ import { Calculator } from 'lucide-react';
 import InvestmentChart from './InvestmentChart';
 import CalculatorInput from './CalculatorInput';
 
-const HRACalculator = () => {
+const HRACalculator = ({ isDarkMode }) => {
     const [formData, setFormData] = useState({
         basicSalary: 50000,
-        hraReceived: 20000,
+        hra: 20000,
         rentPaid: 25000,
-        cityType: 'metro' // metro or non-metro
+        cityType: 'metro'
     });
 
     const [results, setResults] = useState({
@@ -22,36 +22,38 @@ const HRACalculator = () => {
     });
 
     const calculateResults = () => {
-        const { basicSalary, hraReceived, rentPaid, cityType } = formData;
-        const basic = parseFloat(basicSalary);
-        const hra = parseFloat(hraReceived);
-        const rent = parseFloat(rentPaid);
-
-        if (basic <= 0 || hra <= 0 || rent <= 0) return;
-
-        // Calculate HRA exemption based on the least of:
+        const { basicSalary, hra, rentPaid, cityType } = formData;
+        
+        // Calculate HRA exemption based on the minimum of:
         // 1. Actual HRA received
-        // 2. 50% of basic salary for metro cities, 40% for non-metro
-        // 3. Rent paid minus 10% of basic salary
+        // 2. Rent paid - 10% of basic salary
+        // 3. 50% of basic salary (for metro) or 40% (for non-metro)
+        
         const basicPercent = cityType === 'metro' ? 0.5 : 0.4;
-        const basicComponent = basic * basicPercent;
-        const rentMinusBasic = rent - (basic * 0.1);
+        const rentMinusBasic = Math.max(0, rentPaid - (0.1 * basicSalary));
+        const maxExemption = basicSalary * basicPercent;
+        
         const exemptedHRA = Math.min(
             hra,
-            basicComponent,
-            Math.max(0, rentMinusBasic)
+            rentMinusBasic,
+            maxExemption
         );
-        const taxableHRA = hra - exemptedHRA;
+        
+        const taxableHRA = Math.max(0, hra - exemptedHRA);
 
-        // Generate data for the chart
+        // Generate chart data
         const chartData = [
             {
-                category: 'Components',
-                'Basic Salary': basic,
-                'HRA Received': hra,
-                'Rent Paid': rent,
-                'Exempted HRA': exemptedHRA,
-                'Taxable HRA': taxableHRA
+                category: 'Actual',
+                amount: hra
+            },
+            {
+                category: 'Exempted',
+                amount: exemptedHRA
+            },
+            {
+                category: 'Taxable',
+                amount: taxableHRA
             }
         ];
 
@@ -77,29 +79,29 @@ const HRACalculator = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>
             <div className="flex items-center gap-3 mb-6">
-                <Calculator className="text-blue-600" size={28} />
-                <h2 className="text-2xl font-bold text-gray-800">HRA Calculator</h2>
+                <Calculator className={`${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} size={28} />
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>HRA Calculator</h2>
             </div>
 
             {/* Results Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="bg-green-50 p-4 rounded-lg text-center">
-                    <div className="text-sm text-gray-600 mb-1">Exempted HRA</div>
-                    <div className="text-2xl font-bold text-green-600">
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Exempted HRA</div>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         ${Math.round(results.exemptedHRA).toLocaleString()}
                     </div>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                    <div className="text-sm text-gray-600 mb-1">Taxable HRA</div>
-                    <div className="text-2xl font-bold text-blue-600">
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Taxable HRA</div>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         ${Math.round(results.taxableHRA).toLocaleString()}
                     </div>
                 </div>
-                <div className="bg-purple-50 p-4 rounded-lg text-center">
-                    <div className="text-sm text-gray-600 mb-1">Basic Limit</div>
-                    <div className="text-2xl font-bold text-purple-600">
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Basic Limit</div>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         {results.basicPercent}%
                     </div>
                 </div>
@@ -108,53 +110,60 @@ const HRACalculator = () => {
             {/* Input Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <CalculatorInput
-                    label="Basic Salary"
+                    label="Basic Salary (Monthly)"
                     value={formData.basicSalary}
                     onChange={(value) => handleInputChange('basicSalary', value)}
                     type="currency"
                     prefix="$"
                     placeholder="0.00"
+                    isDarkMode={isDarkMode}
                 />
 
                 <CalculatorInput
-                    label="HRA Received"
-                    value={formData.hraReceived}
-                    onChange={(value) => handleInputChange('hraReceived', value)}
+                    label="HRA Received (Monthly)"
+                    value={formData.hra}
+                    onChange={(value) => handleInputChange('hra', value)}
                     type="currency"
                     prefix="$"
                     placeholder="0.00"
+                    isDarkMode={isDarkMode}
                 />
 
                 <CalculatorInput
-                    label="Rent Paid"
+                    label="Rent Paid (Monthly)"
                     value={formData.rentPaid}
                     onChange={(value) => handleInputChange('rentPaid', value)}
                     type="currency"
                     prefix="$"
                     placeholder="0.00"
+                    isDarkMode={isDarkMode}
                 />
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-2`}>
                         City Type
                     </label>
                     <select
                         value={formData.cityType}
                         onChange={(e) => handleInputChange('cityType', e.target.value)}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className={`block w-full rounded-md ${
+                            isDarkMode 
+                                ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                                : 'bg-white border-gray-300 text-gray-700'
+                        } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors duration-200`}
                     >
-                        <option value="metro">Metropolitan City</option>
-                        <option value="non-metro">Non-Metropolitan City</option>
+                        <option value="metro">Metro City</option>
+                        <option value="non-metro">Non-Metro City</option>
                     </select>
                 </div>
             </div>
 
             {/* Explanation */}
-            <div className="mb-8 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
+            <div className={`mb-8 p-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-md text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 <p>
-                    With a basic salary of ${formData.basicSalary.toLocaleString()}, HRA received of ${formData.hraReceived.toLocaleString()},
-                    and rent paid of ${formData.rentPaid.toLocaleString()} in a {formData.cityType === 'metro' ? 'metropolitan' : 'non-metropolitan'} city,
-                    your exempted HRA is ${Math.round(results.exemptedHRA).toLocaleString()} and taxable HRA is ${Math.round(results.taxableHRA).toLocaleString()}.
+                    With a basic salary of ${formData.basicSalary}, HRA received of ${formData.hra}, and rent paid of ${formData.rentPaid},
+                    your exempted HRA is ${Math.round(results.exemptedHRA)}. This means ${Math.round(results.taxableHRA)} of your HRA is taxable.
+                    The exemption is calculated based on the minimum of actual HRA received, rent paid minus 10% of basic salary, and {results.basicPercent}% of basic salary.
                 </p>
             </div>
 
@@ -165,12 +174,9 @@ const HRACalculator = () => {
                 stacked={false}
                 height={400}
                 yAxisLabel="Amount ($)"
+                isDarkMode={isDarkMode}
                 series={[
-                    { key: 'Basic Salary', name: 'Basic Salary', color: '#10B981' },
-                    { key: 'HRA Received', name: 'HRA Received', color: '#3B82F6' },
-                    { key: 'Rent Paid', name: 'Rent Paid', color: '#8B5CF6' },
-                    { key: 'Exempted HRA', name: 'Exempted HRA', color: '#059669' },
-                    { key: 'Taxable HRA', name: 'Taxable HRA', color: '#EF4444' }
+                    { key: 'amount', name: 'Amount', color: isDarkMode ? '#34D399' : '#10B981' }
                 ]}
             />
         </div>

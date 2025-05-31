@@ -4,7 +4,7 @@ import { Calculator } from 'lucide-react';
 import InvestmentChart from './InvestmentChart';
 import CalculatorInput from './CalculatorInput';
 
-const CAGRCalculator = () => {
+const CAGRCalculator = ({ isDarkMode }) => {
     const [formData, setFormData] = useState({
         initialValue: 10000,
         finalValue: 20000,
@@ -67,29 +67,29 @@ const CAGRCalculator = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>
             <div className="flex items-center gap-3 mb-6">
-                <Calculator className="text-blue-600" size={28} />
-                <h2 className="text-2xl font-bold text-gray-800">CAGR Calculator</h2>
+                <Calculator className={`${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} size={28} />
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>CAGR Calculator</h2>
             </div>
 
             {/* Results Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="bg-green-50 p-4 rounded-lg text-center">
-                    <div className="text-sm text-gray-600 mb-1">CAGR</div>
-                    <div className="text-2xl font-bold text-green-600">
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>CAGR</div>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         {results.cagr}%
                     </div>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                    <div className="text-sm text-gray-600 mb-1">Absolute Growth</div>
-                    <div className="text-2xl font-bold text-blue-600">
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Absolute Growth</div>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         ${results.absoluteGrowth.toLocaleString()}
                     </div>
                 </div>
-                <div className="bg-purple-50 p-4 rounded-lg text-center">
-                    <div className="text-sm text-gray-600 mb-1">Total Return</div>
-                    <div className="text-2xl font-bold text-purple-600">
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Total Return</div>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         {results.totalReturn}%
                     </div>
                 </div>
@@ -104,6 +104,7 @@ const CAGRCalculator = () => {
                     type="currency"
                     prefix="$"
                     placeholder="0.00"
+                    isDarkMode={isDarkMode}
                 />
 
                 <CalculatorInput
@@ -113,6 +114,7 @@ const CAGRCalculator = () => {
                     type="currency"
                     prefix="$"
                     placeholder="0.00"
+                    isDarkMode={isDarkMode}
                 />
 
                 <CalculatorInput
@@ -123,11 +125,12 @@ const CAGRCalculator = () => {
                     min="1"
                     max="50"
                     placeholder="Years"
+                    isDarkMode={isDarkMode}
                 />
             </div>
 
             {/* Explanation */}
-            <div className="mb-8 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
+            <div className={`mb-8 p-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-md text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 <p>
                     CAGR of {results.cagr}% means your investment grew at an average rate of {results.cagr}% per year,
                     turning ${formData.initialValue.toLocaleString()} into ${formData.finalValue.toLocaleString()} over {formData.years} years.

@@ -4,7 +4,7 @@ import { Calculator } from 'lucide-react';
 import InvestmentChart from './InvestmentChart';
 import CalculatorInput from './CalculatorInput';
 
-const MutualFundCalculator = () => {
+const MutualFundCalculator = ({ isDarkMode }) => {
     const [formData, setFormData] = useState({
         investmentType: 'lumpsum',
         amount: 10000,
@@ -91,29 +91,29 @@ const MutualFundCalculator = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>
             <div className="flex items-center gap-3 mb-6">
-                <Calculator className="text-blue-600" size={28} />
-                <h2 className="text-2xl font-bold text-gray-800">Mutual Fund Calculator</h2>
+                <Calculator className={`${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} size={28} />
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Mutual Fund Calculator</h2>
             </div>
 
             {/* Results Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div className="bg-green-50 p-4 rounded-lg text-center">
-                    <div className="text-sm text-gray-600 mb-1">Total Investment</div>
-                    <div className="text-2xl font-bold text-green-600">
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Total Investment</div>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         ${Math.round(results.totalInvestment).toLocaleString()}
                     </div>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                    <div className="text-sm text-gray-600 mb-1">Total Returns</div>
-                    <div className="text-2xl font-bold text-blue-600">
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Total Returns</div>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         ${Math.round(results.totalReturns).toLocaleString()}
                     </div>
                 </div>
-                <div className="bg-purple-50 p-4 rounded-lg text-center">
-                    <div className="text-sm text-gray-600 mb-1">Future Value</div>
-                    <div className="text-2xl font-bold text-purple-600">
+                <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-emerald-50'} p-4 rounded-lg text-center transition-colors duration-200`}>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Future Value</div>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         ${Math.round(results.futureValue).toLocaleString()}
                     </div>
                 </div>
@@ -122,11 +122,15 @@ const MutualFundCalculator = () => {
             {/* Input Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Investment Type</label>
+                    <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-700'} mb-2`}>Investment Type</label>
                     <select
                         value={formData.investmentType}
                         onChange={(e) => handleInputChange('investmentType', e.target.value)}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className={`block w-full rounded-md ${
+                            isDarkMode 
+                                ? 'bg-gray-700 border-gray-600 text-gray-200' 
+                                : 'bg-white border-gray-300 text-gray-700'
+                        } focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors duration-200`}
                     >
                         <option value="lumpsum">Lump Sum</option>
                         <option value="sip">SIP (Monthly)</option>
@@ -141,6 +145,7 @@ const MutualFundCalculator = () => {
                         type="currency"
                         prefix="$"
                         placeholder="0.00"
+                        isDarkMode={isDarkMode}
                     />
                 ) : (
                     <CalculatorInput
@@ -150,6 +155,7 @@ const MutualFundCalculator = () => {
                         type="currency"
                         prefix="$"
                         placeholder="0.00"
+                        isDarkMode={isDarkMode}
                     />
                 )}
 
@@ -162,6 +168,7 @@ const MutualFundCalculator = () => {
                     step="0.1"
                     min="0"
                     max="30"
+                    isDarkMode={isDarkMode}
                 />
 
                 <CalculatorInput
@@ -172,11 +179,12 @@ const MutualFundCalculator = () => {
                     suffix=" years"
                     min="1"
                     max="40"
+                    isDarkMode={isDarkMode}
                 />
             </div>
 
             {/* Explanation */}
-            <div className="mb-8 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
+            <div className={`mb-8 p-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-md text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 <p>
                     {formData.investmentType === 'lumpsum' 
                         ? `A one-time investment of $${formData.amount.toLocaleString()} `
@@ -194,6 +202,7 @@ const MutualFundCalculator = () => {
                 stacked={formData.investmentType === 'sip'}
                 height={400}
                 yAxisLabel="Amount ($)"
+                isDarkMode={isDarkMode}
                 series={[
                     { key: 'total', name: 'Total Value', color: '#8B5CF6' },
                     { key: 'invested', name: 'Amount Invested', color: '#10B981' },

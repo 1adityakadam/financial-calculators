@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
+    "@supabase/supabase-js": "^2.49.8",
     "@vercel/analytics": "^1.1.2",
     "ai": "^2.2.36",
     "autoprefixer": "^10.0.1",

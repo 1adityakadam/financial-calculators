@@ -1,46 +1,82 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Calculator } from 'lucide-react';
+import InvestmentChart from './InvestmentChart';
 import CalculatorInput from './CalculatorInput';
 import { formatCurrency, formatPercent } from '../utils/formatters';
 
 const CompoundInterestCalculator = () => {
-  const [principal, setPrincipal] = useState('');
-  const [monthlyContribution, setMonthlyContribution] = useState('');
-  const [interestRate, setInterestRate] = useState('');
-  const [years, setYears] = useState('');
-  const [compoundingFrequency, setCompoundingFrequency] = useState('12');
-  const [futureValue, setFutureValue] = useState(0);
-  const [totalContributions, setTotalContributions] = useState(0);
-  const [totalInterest, setTotalInterest] = useState(0);
+  const [formData, setFormData] = useState({
+    principal: 10000,
+    annualContribution: 1200,
+    rate: 8,
+    years: 10,
+    compoundingFrequency: 12 // monthly
+  });
+
+  const [results, setResults] = useState({
+    futureValue: 0,
+    totalContributions: 0,
+    totalInterest: 0,
+    chartData: []
+  });
+
+  const calculateResults = () => {
+    const { principal, annualContribution, rate, years, compoundingFrequency } = formData;
+    const P = parseFloat(principal);
+    const PMT = parseFloat(annualContribution) / compoundingFrequency;
+    const r = parseFloat(rate) / 100 / compoundingFrequency;
+    const n = compoundingFrequency * parseFloat(years);
+
+    if (P <= 0 || r <= 0 || n <= 0) return;
+
+    // Calculate future value with regular contributions
+    const futureValue = P * Math.pow(1 + r, n) + 
+        PMT * ((Math.pow(1 + r, n) - 1) / r);
+
+    const totalContributions = P + (PMT * n);
+    const totalInterest = futureValue - totalContributions;
+
+    // Generate data points for the chart
+    const chartData = [];
+    const pointsPerYear = 4; // quarterly points
+    const totalPoints = years * pointsPerYear;
+    const timeStep = compoundingFrequency / pointsPerYear;
+
+    for (let i = 0; i <= totalPoints; i++) {
+      const periods = i * timeStep;
+      const timeInYears = periods / compoundingFrequency;
+      const regularContributions = PMT * periods;
+      const currentValue = P * Math.pow(1 + r, periods) + 
+          PMT * ((Math.pow(1 + r, periods) - 1) / r);
+      
+      chartData.push({
+        year: timeInYears.toFixed(1),
+        invested: P + regularContributions,
+        returns: currentValue - (P + regularContributions),
+        total: currentValue
+      });
+    }
+
+    setResults({
+      futureValue,
+      totalContributions,
+      totalInterest,
+      chartData
+    });
+  };
 
   useEffect(() => {
-    if (principal && interestRate && years) {
-      const P = parseFloat(principal);
-      const r = parseFloat(interestRate) / 100;
-      const t = parseFloat(years);
-      const n = parseInt(compoundingFrequency);
-      const PMT = monthlyContribution ? parseFloat(monthlyContribution) : 0;
-      
-      // Calculate future value with monthly contributions
-      // Using the formula: FV = P(1 + r/n)^(nt) + PMT * (((1 + r/n)^(nt) - 1) / (r/n))
-      const base = 1 + r/n;
-      const exp = n * t;
-      const futureVal = P * Math.pow(base, exp) + 
-                       PMT * ((Math.pow(base, exp) - 1) / (r/n));
+    calculateResults();
+  }, [formData]);
 
-      if (isFinite(futureVal) && futureVal > 0) {
-        setFutureValue(futureVal);
-        const totalContrib = P + (PMT * 12 * t);
-        setTotalContributions(totalContrib);
-        setTotalInterest(futureVal - totalContrib);
-      } else {
-        setFutureValue(0);
-        setTotalContributions(0);
-        setTotalInterest(0);
-      }
-    }
-  }, [principal, monthlyContribution, interestRate, years, compoundingFrequency]);
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const compoundingOptions = [
     { value: '1', label: 'Annually' },
@@ -51,89 +87,117 @@ const CompoundInterestCalculator = () => {
   ];
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Compound Interest Calculator</h2>
-      
-      <CalculatorInput
-        label="Initial Investment"
-        value={principal}
-        onChange={setPrincipal}
-        type="currency"
-        prefix="$"
-        placeholder="0.00"
-      />
-
-      <CalculatorInput
-        label="Monthly Contribution"
-        value={monthlyContribution}
-        onChange={setMonthlyContribution}
-        type="currency"
-        prefix="$"
-        placeholder="0.00"
-      />
-
-      <CalculatorInput
-        label="Annual Interest Rate"
-        value={interestRate}
-        onChange={setInterestRate}
-        type="number"
-        suffix="%"
-        placeholder="0.00"
-        step="0.01"
-        min="0"
-        max="100"
-      />
-
-      <CalculatorInput
-        label="Time Period (Years)"
-        value={years}
-        onChange={setYears}
-        type="number"
-        placeholder="Years"
-        min="1"
-        max="50"
-      />
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Compounding Frequency
-        </label>
-        <select
-          value={compoundingFrequency}
-          onChange={(e) => setCompoundingFrequency(e.target.value)}
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-        >
-          {compoundingOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <div className="flex items-center gap-3 mb-6">
+        <Calculator className="text-blue-600" size={28} />
+        <h2 className="text-2xl font-bold text-gray-800">Compound Interest Calculator</h2>
       </div>
 
-      <div className="mt-6 p-4 bg-gray-50 rounded-md">
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-500">Future Value</h3>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(futureValue)}</p>
+      {/* Results Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-green-50 p-4 rounded-lg text-center">
+          <div className="text-sm text-gray-600 mb-1">Total Investment</div>
+          <div className="text-2xl font-bold text-green-600">
+            {formatCurrency(results.totalContributions)}
+          </div>
         </div>
-        
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-500">Total Contributions</h3>
-          <p className="text-lg font-semibold text-gray-900">{formatCurrency(totalContributions)}</p>
+        <div className="bg-blue-50 p-4 rounded-lg text-center">
+          <div className="text-sm text-gray-600 mb-1">Total Interest</div>
+          <div className="text-2xl font-bold text-blue-600">
+            {formatCurrency(results.totalInterest)}
+          </div>
         </div>
-
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-500">Total Interest Earned</h3>
-          <p className="text-lg font-semibold text-gray-900">{formatCurrency(totalInterest)}</p>
-        </div>
-
-        <div className="pt-4 border-t border-gray-200">
-          <h3 className="text-sm font-medium text-gray-500">Return on Investment</h3>
-          <p className="text-lg font-semibold text-gray-900">
-            {formatPercent((totalInterest / totalContributions) * 100)}
-          </p>
+        <div className="bg-purple-50 p-4 rounded-lg text-center">
+          <div className="text-sm text-gray-600 mb-1">Future Value</div>
+          <div className="text-2xl font-bold text-purple-600">
+            {formatCurrency(results.futureValue)}
+          </div>
         </div>
       </div>
+
+      {/* Input Fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <CalculatorInput
+          label="Initial Principal"
+          value={formData.principal}
+          onChange={(value) => handleInputChange('principal', value)}
+          type="currency"
+          prefix="$"
+          placeholder="0.00"
+        />
+
+        <CalculatorInput
+          label="Annual Contribution"
+          value={formData.annualContribution}
+          onChange={(value) => handleInputChange('annualContribution', value)}
+          type="currency"
+          prefix="$"
+          placeholder="0.00"
+        />
+
+        <CalculatorInput
+          label="Interest Rate"
+          value={formData.rate}
+          onChange={(value) => handleInputChange('rate', value)}
+          type="number"
+          suffix="%"
+          step="0.1"
+          min="0"
+          max="30"
+        />
+
+        <CalculatorInput
+          label="Time Period"
+          value={formData.years}
+          onChange={(value) => handleInputChange('years', value)}
+          type="number"
+          suffix=" years"
+          min="1"
+          max="50"
+        />
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Compounding Frequency
+          </label>
+          <select
+            value={formData.compoundingFrequency}
+            onChange={(e) => handleInputChange('compoundingFrequency', parseInt(e.target.value))}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          >
+            {compoundingOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Explanation */}
+      <div className="mb-8 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
+        <p>
+          An initial investment of {formatCurrency(formData.principal)} with annual contributions of {formatCurrency(formData.annualContribution)},
+          compounding {formData.compoundingFrequency === 1 ? 'annually' : 
+                     formData.compoundingFrequency === 2 ? 'semi-annually' :
+                     formData.compoundingFrequency === 4 ? 'quarterly' :
+                     formData.compoundingFrequency === 12 ? 'monthly' : 'daily'} at {formData.rate}% interest
+          will grow to {formatCurrency(results.futureValue)} in {formData.years} years.
+        </p>
+      </div>
+
+      {/* Chart */}
+      <InvestmentChart 
+        data={results.chartData}
+        type="area"
+        stacked={true}
+        height={400}
+        yAxisLabel="Amount ($)"
+        series={[
+          { key: 'invested', name: 'Total Contributions', color: '#10B981' },
+          { key: 'returns', name: 'Interest Earned', color: '#3B82F6' }
+        ]}
+      />
     </div>
   );
 };

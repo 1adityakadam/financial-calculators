@@ -1,9 +1,14 @@
+import { Inter } from 'next/font/google';
 import './globals.css';
+import Navbar from '../components/Navbar';
+import { Analytics } from '@vercel/analytics/react';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'US Financial Calculators',
-  description: 'Professional financial calculators for loans, mortgages, and investments using US standards',
-  keywords: 'financial calculator, loan calculator, mortgage calculator, compound interest, US dollars, USD',
+  title: 'Financial Calculators',
+  description: 'Comprehensive suite of financial calculators including tax, investment, loan, and retirement planning tools.',
+  keywords: 'financial calculator, tax calculator, investment calculator, loan calculator, retirement calculator, SIP calculator',
 };
 
 export default function RootLayout({ children }) {
@@ -14,8 +19,10 @@ export default function RootLayout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className="antialiased">
+      <body className={inter.className}>
+        <Navbar />
         {children}
+        <Analytics />
       </body>
     </html>
   );

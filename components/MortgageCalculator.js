@@ -1,140 +1,218 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Calculator } from 'lucide-react';
+import InvestmentChart from './InvestmentChart';
 import CalculatorInput from './CalculatorInput';
 import { formatCurrency, formatPercent, getMonthlyRate } from '../utils/formatters';
 
 const MortgageCalculator = () => {
-  const [homePrice, setHomePrice] = useState('');
-  const [downPayment, setDownPayment] = useState('');
-  const [interestRate, setInterestRate] = useState('');
-  const [loanTerm, setLoanTerm] = useState('30');
-  const [propertyTax, setPropertyTax] = useState('');
-  const [insurance, setInsurance] = useState('');
-  const [monthlyPayment, setMonthlyPayment] = useState(0);
-  const [pmi, setPmi] = useState(0);
-  const [totalMonthlyPayment, setTotalMonthlyPayment] = useState(0);
+  const [formData, setFormData] = useState({
+    homePrice: 300000,
+    downPayment: 60000,
+    interestRate: 6.5,
+    loanTerm: 30,
+    propertyTax: 3000,
+    insurance: 1200
+  });
 
-  useEffect(() => {
-    if (homePrice && downPayment && interestRate) {
-      const price = parseFloat(homePrice);
-      const down = parseFloat(downPayment);
-      const loanAmount = price - down;
-      const monthlyRate = getMonthlyRate(parseFloat(interestRate));
-      const numberOfPayments = parseFloat(loanTerm) * 12;
+  const [results, setResults] = useState({
+    monthlyPayment: 0,
+    pmi: 0,
+    totalMonthlyPayment: 0,
+    chartData: []
+  });
 
-      // Calculate base monthly mortgage payment
-      const monthlyPmt = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / 
-                        (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+  const calculateResults = () => {
+    const { homePrice, downPayment, interestRate, loanTerm, propertyTax, insurance } = formData;
+    const price = parseFloat(homePrice);
+    const down = parseFloat(downPayment);
+    const loanAmount = price - down;
+    const monthlyRate = getMonthlyRate(parseFloat(interestRate));
+    const numberOfPayments = parseFloat(loanTerm) * 12;
 
-      // Calculate PMI (Private Mortgage Insurance) if down payment is less than 20%
-      const downPaymentPercent = (down / price) * 100;
-      const monthlyPMI = downPaymentPercent < 20 ? (loanAmount * 0.01) / 12 : 0;
-      
-      // Calculate monthly property tax and insurance
-      const monthlyTax = propertyTax ? parseFloat(propertyTax) / 12 : 0;
-      const monthlyInsurance = insurance ? parseFloat(insurance) / 12 : 0;
+    if (price <= 0 || down < 0 || monthlyRate <= 0 || numberOfPayments <= 0) return;
 
-      if (isFinite(monthlyPmt) && monthlyPmt > 0) {
-        setMonthlyPayment(monthlyPmt);
-        setPmi(monthlyPMI);
-        setTotalMonthlyPayment(monthlyPmt + monthlyPMI + monthlyTax + monthlyInsurance);
-      } else {
-        setMonthlyPayment(0);
-        setPmi(0);
-        setTotalMonthlyPayment(0);
+    // Calculate base monthly mortgage payment
+    const monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / 
+                          (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+
+    if (!isFinite(monthlyPayment) || monthlyPayment <= 0) return;
+
+    // Calculate PMI (Private Mortgage Insurance) if down payment is less than 20%
+    const downPaymentPercent = (down / price) * 100;
+    const monthlyPMI = downPaymentPercent < 20 ? (loanAmount * 0.01) / 12 : 0;
+    
+    // Calculate monthly property tax and insurance
+    const monthlyTax = propertyTax ? parseFloat(propertyTax) / 12 : 0;
+    const monthlyInsurance = insurance ? parseFloat(insurance) / 12 : 0;
+
+    const totalMonthlyPayment = monthlyPayment + monthlyPMI + monthlyTax + monthlyInsurance;
+
+    // Generate amortization schedule for the chart
+    const chartData = [];
+    let remainingBalance = loanAmount;
+    let totalPaidSoFar = down; // Include down payment in equity
+    let interestPaidSoFar = 0;
+
+    for (let month = 0; month <= numberOfPayments; month++) {
+      if (month === 0) {
+        chartData.push({
+          year: 0,
+          balance: remainingBalance,
+          equity: down,
+          interest: 0
+        });
+        continue;
+      }
+
+      const interestPayment = remainingBalance * monthlyRate;
+      const principalPayment = monthlyPayment - interestPayment;
+      remainingBalance -= principalPayment;
+      totalPaidSoFar += monthlyPayment;
+      interestPaidSoFar += interestPayment;
+
+      if (month % 12 === 0 || month === numberOfPayments) {
+        chartData.push({
+          year: (month / 12).toFixed(1),
+          balance: Math.max(0, remainingBalance),
+          equity: price - Math.max(0, remainingBalance),
+          interest: interestPaidSoFar
+        });
       }
     }
-  }, [homePrice, downPayment, interestRate, loanTerm, propertyTax, insurance]);
+
+    setResults({
+      monthlyPayment,
+      pmi: monthlyPMI,
+      totalMonthlyPayment,
+      chartData
+    });
+  };
+
+  useEffect(() => {
+    calculateResults();
+  }, [formData]);
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Mortgage Calculator</h2>
-      
-      <CalculatorInput
-        label="Home Price"
-        value={homePrice}
-        onChange={setHomePrice}
-        type="currency"
-        prefix="$"
-        placeholder="0.00"
-      />
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <div className="flex items-center gap-3 mb-6">
+        <Calculator className="text-blue-600" size={28} />
+        <h2 className="text-2xl font-bold text-gray-800">Mortgage Calculator</h2>
+      </div>
 
-      <CalculatorInput
-        label="Down Payment"
-        value={downPayment}
-        onChange={setDownPayment}
-        type="currency"
-        prefix="$"
-        placeholder="0.00"
-      />
-
-      <CalculatorInput
-        label="Annual Interest Rate"
-        value={interestRate}
-        onChange={setInterestRate}
-        type="number"
-        suffix="%"
-        placeholder="0.00"
-        step="0.01"
-        min="0"
-        max="100"
-      />
-
-      <CalculatorInput
-        label="Loan Term (Years)"
-        value={loanTerm}
-        onChange={setLoanTerm}
-        type="number"
-        placeholder="30"
-        min="15"
-        max="30"
-      />
-
-      <CalculatorInput
-        label="Annual Property Tax"
-        value={propertyTax}
-        onChange={setPropertyTax}
-        type="currency"
-        prefix="$"
-        placeholder="0.00"
-      />
-
-      <CalculatorInput
-        label="Annual Home Insurance"
-        value={insurance}
-        onChange={setInsurance}
-        type="currency"
-        prefix="$"
-        placeholder="0.00"
-      />
-
-      <div className="mt-6 p-4 bg-gray-50 rounded-md">
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-500">Principal & Interest</h3>
-          <p className="text-xl font-bold text-gray-900">{formatCurrency(monthlyPayment)}</p>
-        </div>
-        
-        {pmi > 0 && (
-          <div className="mb-4">
-            <h3 className="text-sm font-medium text-gray-500">PMI</h3>
-            <p className="text-lg font-semibold text-gray-900">{formatCurrency(pmi)}</p>
+      {/* Results Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-green-50 p-4 rounded-lg text-center">
+          <div className="text-sm text-gray-600 mb-1">Principal & Interest</div>
+          <div className="text-2xl font-bold text-green-600">
+            {formatCurrency(results.monthlyPayment)}
           </div>
-        )}
-
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-500">Property Tax & Insurance</h3>
-          <p className="text-lg font-semibold text-gray-900">
-            {formatCurrency((propertyTax ? parseFloat(propertyTax) / 12 : 0) + 
-                          (insurance ? parseFloat(insurance) / 12 : 0))}
-          </p>
         </div>
-
-        <div className="pt-4 border-t border-gray-200">
-          <h3 className="text-sm font-medium text-gray-500">Total Monthly Payment</h3>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalMonthlyPayment)}</p>
+        <div className="bg-blue-50 p-4 rounded-lg text-center">
+          <div className="text-sm text-gray-600 mb-1">Monthly Escrow</div>
+          <div className="text-2xl font-bold text-blue-600">
+            {formatCurrency((formData.propertyTax / 12) + (formData.insurance / 12))}
+          </div>
+        </div>
+        <div className="bg-purple-50 p-4 rounded-lg text-center">
+          <div className="text-sm text-gray-600 mb-1">Total Payment</div>
+          <div className="text-2xl font-bold text-purple-600">
+            {formatCurrency(results.totalMonthlyPayment)}
+          </div>
         </div>
       </div>
+
+      {/* Input Fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <CalculatorInput
+          label="Home Price"
+          value={formData.homePrice}
+          onChange={(value) => handleInputChange('homePrice', value)}
+          type="currency"
+          prefix="$"
+          placeholder="0.00"
+        />
+
+        <CalculatorInput
+          label="Down Payment"
+          value={formData.downPayment}
+          onChange={(value) => handleInputChange('downPayment', value)}
+          type="currency"
+          prefix="$"
+          placeholder="0.00"
+        />
+
+        <CalculatorInput
+          label="Annual Interest Rate"
+          value={formData.interestRate}
+          onChange={(value) => handleInputChange('interestRate', value)}
+          type="number"
+          suffix="%"
+          step="0.1"
+          min="0"
+          max="30"
+        />
+
+        <CalculatorInput
+          label="Loan Term"
+          value={formData.loanTerm}
+          onChange={(value) => handleInputChange('loanTerm', value)}
+          type="number"
+          suffix=" years"
+          min="15"
+          max="30"
+        />
+
+        <CalculatorInput
+          label="Annual Property Tax"
+          value={formData.propertyTax}
+          onChange={(value) => handleInputChange('propertyTax', value)}
+          type="currency"
+          prefix="$"
+          placeholder="0.00"
+        />
+
+        <CalculatorInput
+          label="Annual Home Insurance"
+          value={formData.insurance}
+          onChange={(value) => handleInputChange('insurance', value)}
+          type="currency"
+          prefix="$"
+          placeholder="0.00"
+        />
+      </div>
+
+      {/* Explanation */}
+      <div className="mb-8 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
+        <p>
+          For a ${formData.homePrice.toLocaleString()} home with ${formData.downPayment.toLocaleString()} down payment at {formData.interestRate}% interest,
+          your monthly payment will be ${Math.round(results.monthlyPayment).toLocaleString()} (principal & interest)
+          {results.pmi > 0 ? ` plus ${formatCurrency(results.pmi)} PMI` : ''} plus ${formatCurrency((formData.propertyTax / 12) + (formData.insurance / 12))} for taxes and insurance,
+          for a total monthly payment of ${Math.round(results.totalMonthlyPayment).toLocaleString()}.
+        </p>
+      </div>
+
+      {/* Chart */}
+      <InvestmentChart 
+        data={results.chartData}
+        type="area"
+        stacked={false}
+        height={400}
+        yAxisLabel="Amount ($)"
+        series={[
+          { key: 'balance', name: 'Loan Balance', color: '#EF4444' },
+          { key: 'equity', name: 'Home Equity', color: '#10B981' },
+          { key: 'interest', name: 'Interest Paid', color: '#3B82F6' }
+        ]}
+      />
     </div>
   );
 };

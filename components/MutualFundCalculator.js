@@ -1,155 +1,205 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Calculator } from 'lucide-react';
+import InvestmentChart from './InvestmentChart';
+import CalculatorInput from './CalculatorInput';
 
 const MutualFundCalculator = () => {
-    const [investmentType, setInvestmentType] = useState('lumpsum');
-    const [amount, setAmount] = useState('');
-    const [monthlyInvestment, setMonthlyInvestment] = useState('');
-    const [years, setYears] = useState('');
-    const [expectedReturn, setExpectedReturn] = useState('');
-    const [result, setResult] = useState(null);
+    const [formData, setFormData] = useState({
+        investmentType: 'lumpsum',
+        amount: 10000,
+        monthlyInvestment: 1000,
+        years: 5,
+        expectedReturn: 12
+    });
 
-    const calculateLumpsum = () => {
-        const p = parseFloat(amount);
-        const r = parseFloat(expectedReturn) / 100;
-        const t = parseFloat(years);
+    const [results, setResults] = useState({
+        futureValue: 0,
+        totalInvestment: 0,
+        totalReturns: 0,
+        xirr: 0,
+        chartData: []
+    });
 
-        const futureValue = p * Math.pow(1 + r, t);
-        const totalInvestment = p;
-        const totalReturns = futureValue - totalInvestment;
+    const calculateResults = () => {
+        const { investmentType, amount, monthlyInvestment, years, expectedReturn } = formData;
+        let futureValue, totalInvestment, totalReturns, chartData = [];
 
-        return {
-            futureValue,
-            totalInvestment,
-            totalReturns
-        };
-    };
-
-    const calculateSIP = () => {
-        const p = parseFloat(monthlyInvestment);
-        const r = parseFloat(expectedReturn) / 100 / 12; // Monthly rate
-        const t = parseFloat(years) * 12; // Total months
-
-        const futureValue = p * ((Math.pow(1 + r, t) - 1) / r) * (1 + r);
-        const totalInvestment = p * t;
-        const totalReturns = futureValue - totalInvestment;
-
-        return {
-            futureValue,
-            totalInvestment,
-            totalReturns
-        };
-    };
-
-    const calculate = () => {
         if (investmentType === 'lumpsum') {
-            if (isNaN(parseFloat(amount)) || isNaN(parseFloat(expectedReturn)) || isNaN(parseFloat(years))) {
-                alert('Please enter valid numbers');
-                return;
+            const p = parseFloat(amount);
+            const r = parseFloat(expectedReturn) / 100;
+            const t = parseFloat(years);
+
+            if (p <= 0 || r <= 0 || t <= 0) return;
+
+            futureValue = p * Math.pow(1 + r, t);
+            totalInvestment = p;
+            totalReturns = futureValue - totalInvestment;
+
+            // Generate yearly data for chart
+            for (let year = 0; year <= t; year++) {
+                const currentValue = p * Math.pow(1 + r, year);
+                chartData.push({
+                    year,
+                    invested: p,
+                    returns: currentValue - p,
+                    total: currentValue
+                });
             }
         } else {
-            if (isNaN(parseFloat(monthlyInvestment)) || isNaN(parseFloat(expectedReturn)) || isNaN(parseFloat(years))) {
-                alert('Please enter valid numbers');
-                return;
+            const p = parseFloat(monthlyInvestment);
+            const r = parseFloat(expectedReturn) / 100 / 12; // Monthly rate
+            const t = parseFloat(years) * 12; // Total months
+
+            if (p <= 0 || r <= 0 || t <= 0) return;
+
+            futureValue = p * ((Math.pow(1 + r, t) - 1) / r) * (1 + r);
+            totalInvestment = p * t;
+            totalReturns = futureValue - totalInvestment;
+
+            // Generate monthly data for chart
+            for (let month = 0; month <= t; month++) {
+                const invested = p * month;
+                const currentValue = p * ((Math.pow(1 + r, month) - 1) / r) * (1 + r);
+                chartData.push({
+                    year: (month / 12).toFixed(1),
+                    invested,
+                    returns: currentValue - invested,
+                    total: currentValue
+                });
             }
         }
-
-        const results = investmentType === 'lumpsum' ? calculateLumpsum() : calculateSIP();
         
-        setResult({
-            futureValue: results.futureValue.toFixed(2),
-            totalInvestment: results.totalInvestment.toFixed(2),
-            totalReturns: results.totalReturns.toFixed(2),
-            xirr: ((results.totalReturns / results.totalInvestment) * 100 / parseFloat(years)).toFixed(2)
+        setResults({
+            futureValue,
+            totalInvestment,
+            totalReturns,
+            xirr: (totalReturns / totalInvestment) * 100 / parseFloat(years),
+            chartData
         });
     };
 
+    useEffect(() => {
+        calculateResults();
+    }, [formData]);
+
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
     return (
-        <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-6 text-center">Mutual Fund Calculator</h2>
-            
-            <div className="space-y-4">
+        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+                <Calculator className="text-blue-600" size={28} />
+                <h2 className="text-2xl font-bold text-gray-800">Mutual Fund Calculator</h2>
+            </div>
+
+            {/* Results Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="bg-green-50 p-4 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-1">Total Investment</div>
+                    <div className="text-2xl font-bold text-green-600">
+                        ${Math.round(results.totalInvestment).toLocaleString()}
+                    </div>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-1">Total Returns</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                        ${Math.round(results.totalReturns).toLocaleString()}
+                    </div>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-1">Future Value</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                        ${Math.round(results.futureValue).toLocaleString()}
+                    </div>
+                </div>
+            </div>
+
+            {/* Input Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Investment Type</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Investment Type</label>
                     <select
-                        value={investmentType}
-                        onChange={(e) => setInvestmentType(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        value={formData.investmentType}
+                        onChange={(e) => handleInputChange('investmentType', e.target.value)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     >
                         <option value="lumpsum">Lump Sum</option>
                         <option value="sip">SIP (Monthly)</option>
                     </select>
                 </div>
 
-                {investmentType === 'lumpsum' ? (
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Investment Amount (₹)</label>
-                        <input
-                            type="number"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            placeholder="Enter investment amount"
-                        />
-                    </div>
+                {formData.investmentType === 'lumpsum' ? (
+                    <CalculatorInput
+                        label="Investment Amount"
+                        value={formData.amount}
+                        onChange={(value) => handleInputChange('amount', value)}
+                        type="currency"
+                        prefix="$"
+                        placeholder="0.00"
+                    />
                 ) : (
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Monthly Investment (₹)</label>
-                        <input
-                            type="number"
-                            value={monthlyInvestment}
-                            onChange={(e) => setMonthlyInvestment(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            placeholder="Enter monthly investment"
-                        />
-                    </div>
+                    <CalculatorInput
+                        label="Monthly Investment"
+                        value={formData.monthlyInvestment}
+                        onChange={(value) => handleInputChange('monthlyInvestment', value)}
+                        type="currency"
+                        prefix="$"
+                        placeholder="0.00"
+                    />
                 )}
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Expected Return Rate (% per annum)</label>
-                    <input
-                        type="number"
-                        value={expectedReturn}
-                        onChange={(e) => setExpectedReturn(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter expected return rate"
-                    />
-                </div>
+                <CalculatorInput
+                    label="Expected Return Rate"
+                    value={formData.expectedReturn}
+                    onChange={(value) => handleInputChange('expectedReturn', value)}
+                    type="number"
+                    suffix="%"
+                    step="0.1"
+                    min="0"
+                    max="30"
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Investment Period (Years)</label>
-                    <input
-                        type="number"
-                        value={years}
-                        onChange={(e) => setYears(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter investment period"
-                    />
-                </div>
-
-                <button
-                    onClick={calculate}
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                    Calculate Returns
-                </button>
-
-                {result && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-md">
-                        <h3 className="text-lg font-semibold mb-2">Investment Returns:</h3>
-                        <div className="space-y-2">
-                            <p className="text-sm">Total Investment: ₹{result.totalInvestment}</p>
-                            <p className="text-sm text-green-600">Total Returns: ₹{result.totalReturns}</p>
-                            <p className="text-sm font-semibold">Future Value: ₹{result.futureValue}</p>
-                            <p className="text-sm">Average Annual Return: {result.xirr}%</p>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-4">
-                            Note: These calculations assume a constant rate of return.
-                            Actual returns may vary based on market conditions and fund performance.
-                        </p>
-                    </div>
-                )}
+                <CalculatorInput
+                    label="Investment Period"
+                    value={formData.years}
+                    onChange={(value) => handleInputChange('years', value)}
+                    type="number"
+                    suffix=" years"
+                    min="1"
+                    max="40"
+                />
             </div>
+
+            {/* Explanation */}
+            <div className="mb-8 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
+                <p>
+                    {formData.investmentType === 'lumpsum' 
+                        ? `A one-time investment of $${formData.amount.toLocaleString()} `
+                        : `Monthly investments of $${formData.monthlyInvestment.toLocaleString()} `}
+                    for {formData.years} years at {formData.expectedReturn}% annual return will grow to ${Math.round(results.futureValue).toLocaleString()},
+                    generating ${Math.round(results.totalReturns).toLocaleString()} in returns.
+                    The average annual return on investment is {results.xirr.toFixed(2)}%.
+                </p>
+            </div>
+
+            {/* Chart */}
+            <InvestmentChart 
+                data={results.chartData}
+                type={formData.investmentType === 'lumpsum' ? 'line' : 'area'}
+                stacked={formData.investmentType === 'sip'}
+                height={400}
+                yAxisLabel="Amount ($)"
+                series={[
+                    { key: 'total', name: 'Total Value', color: '#8B5CF6' },
+                    { key: 'invested', name: 'Amount Invested', color: '#10B981' },
+                    { key: 'returns', name: 'Returns Generated', color: '#3B82F6' }
+                ]}
+            />
         </div>
     );
 };

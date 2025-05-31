@@ -1,130 +1,178 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Calculator } from 'lucide-react';
+import InvestmentChart from './InvestmentChart';
+import CalculatorInput from './CalculatorInput';
 
 const HRACalculator = () => {
-    const [basicSalary, setBasicSalary] = useState('');
-    const [hraReceived, setHraReceived] = useState('');
-    const [rentPaid, setRentPaid] = useState('');
-    const [cityType, setCityType] = useState('metro'); // metro or non-metro
-    const [result, setResult] = useState(null);
+    const [formData, setFormData] = useState({
+        basicSalary: 50000,
+        hraReceived: 20000,
+        rentPaid: 25000,
+        cityType: 'metro' // metro or non-metro
+    });
 
-    const calculateHRA = () => {
+    const [results, setResults] = useState({
+        exemptedHRA: 0,
+        taxableHRA: 0,
+        basicPercent: 0,
+        rentMinusBasic: 0,
+        actualHRA: 0,
+        chartData: []
+    });
+
+    const calculateResults = () => {
+        const { basicSalary, hraReceived, rentPaid, cityType } = formData;
         const basic = parseFloat(basicSalary);
         const hra = parseFloat(hraReceived);
         const rent = parseFloat(rentPaid);
 
-        if (isNaN(basic) || isNaN(hra) || isNaN(rent)) {
-            alert('Please enter valid numbers');
-            return;
-        }
+        if (basic <= 0 || hra <= 0 || rent <= 0) return;
 
-        // Calculate HRA exemption based on the minimum of:
+        // Calculate HRA exemption based on the least of:
         // 1. Actual HRA received
-        // 2. 50% of basic salary for metro cities (40% for non-metro)
-        // 3. Rent paid - 10% of basic salary
-
+        // 2. 50% of basic salary for metro cities, 40% for non-metro
+        // 3. Rent paid minus 10% of basic salary
         const basicPercent = cityType === 'metro' ? 0.5 : 0.4;
-        const condition1 = hra;
-        const condition2 = basic * basicPercent;
-        const condition3 = rent - (basic * 0.1);
-
-        const exemption = Math.min(
-            condition1,
-            condition2,
-            Math.max(0, condition3) // Ensure it's not negative
+        const basicComponent = basic * basicPercent;
+        const rentMinusBasic = rent - (basic * 0.1);
+        const exemptedHRA = Math.min(
+            hra,
+            basicComponent,
+            Math.max(0, rentMinusBasic)
         );
+        const taxableHRA = hra - exemptedHRA;
 
-        const taxableHRA = Math.max(0, hra - exemption);
-
-        setResult({
-            hraExemption: exemption.toFixed(2),
-            taxableHRA: taxableHRA.toFixed(2),
-            calculations: {
-                actualHRA: condition1.toFixed(2),
-                percentOfBasic: condition2.toFixed(2),
-                rentLessBasic: condition3.toFixed(2)
+        // Generate data for the chart
+        const chartData = [
+            {
+                category: 'Components',
+                'Basic Salary': basic,
+                'HRA Received': hra,
+                'Rent Paid': rent,
+                'Exempted HRA': exemptedHRA,
+                'Taxable HRA': taxableHRA
             }
+        ];
+
+        setResults({
+            exemptedHRA,
+            taxableHRA,
+            basicPercent: basicPercent * 100,
+            rentMinusBasic,
+            actualHRA: hra,
+            chartData
         });
     };
 
+    useEffect(() => {
+        calculateResults();
+    }, [formData]);
+
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
     return (
-        <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-6 text-center">HRA Calculator</h2>
-            
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Basic Salary (Monthly) (₹)</label>
-                    <input
-                        type="number"
-                        value={basicSalary}
-                        onChange={(e) => setBasicSalary(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter basic salary"
-                    />
+        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+                <Calculator className="text-blue-600" size={28} />
+                <h2 className="text-2xl font-bold text-gray-800">HRA Calculator</h2>
+            </div>
+
+            {/* Results Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="bg-green-50 p-4 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-1">Exempted HRA</div>
+                    <div className="text-2xl font-bold text-green-600">
+                        ${Math.round(results.exemptedHRA).toLocaleString()}
+                    </div>
                 </div>
+                <div className="bg-blue-50 p-4 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-1">Taxable HRA</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                        ${Math.round(results.taxableHRA).toLocaleString()}
+                    </div>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-1">Basic Limit</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                        {results.basicPercent}%
+                    </div>
+                </div>
+            </div>
+
+            {/* Input Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <CalculatorInput
+                    label="Basic Salary"
+                    value={formData.basicSalary}
+                    onChange={(value) => handleInputChange('basicSalary', value)}
+                    type="currency"
+                    prefix="$"
+                    placeholder="0.00"
+                />
+
+                <CalculatorInput
+                    label="HRA Received"
+                    value={formData.hraReceived}
+                    onChange={(value) => handleInputChange('hraReceived', value)}
+                    type="currency"
+                    prefix="$"
+                    placeholder="0.00"
+                />
+
+                <CalculatorInput
+                    label="Rent Paid"
+                    value={formData.rentPaid}
+                    onChange={(value) => handleInputChange('rentPaid', value)}
+                    type="currency"
+                    prefix="$"
+                    placeholder="0.00"
+                />
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">HRA Received (Monthly) (₹)</label>
-                    <input
-                        type="number"
-                        value={hraReceived}
-                        onChange={(e) => setHraReceived(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter HRA received"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Rent Paid (Monthly) (₹)</label>
-                    <input
-                        type="number"
-                        value={rentPaid}
-                        onChange={(e) => setRentPaid(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter rent paid"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">City Type</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        City Type
+                    </label>
                     <select
-                        value={cityType}
-                        onChange={(e) => setCityType(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        value={formData.cityType}
+                        onChange={(e) => handleInputChange('cityType', e.target.value)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     >
-                        <option value="metro">Metro City (50% of Basic)</option>
-                        <option value="non-metro">Non-Metro City (40% of Basic)</option>
+                        <option value="metro">Metropolitan City</option>
+                        <option value="non-metro">Non-Metropolitan City</option>
                     </select>
                 </div>
-
-                <button
-                    onClick={calculateHRA}
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                    Calculate HRA Exemption
-                </button>
-
-                {result && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-md">
-                        <h3 className="text-lg font-semibold mb-2">Results:</h3>
-                        <div className="space-y-2">
-                            <p className="text-sm font-semibold text-green-600">HRA Exemption: ₹{result.hraExemption}</p>
-                            <p className="text-sm font-semibold text-red-600">Taxable HRA: ₹{result.taxableHRA}</p>
-                            
-                            <div className="mt-4 text-xs text-gray-600">
-                                <p className="font-medium">Calculation Details:</p>
-                                <p>1. Actual HRA received: ₹{result.calculations.actualHRA}</p>
-                                <p>2. {cityType === 'metro' ? '50%' : '40%'} of Basic Salary: ₹{result.calculations.percentOfBasic}</p>
-                                <p>3. Rent paid - 10% of Basic: ₹{result.calculations.rentLessBasic}</p>
-                            </div>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-4">
-                            Note: HRA exemption is calculated as the minimum of the above three conditions.
-                            Please consult a tax professional for detailed tax implications.
-                        </p>
-                    </div>
-                )}
             </div>
+
+            {/* Explanation */}
+            <div className="mb-8 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
+                <p>
+                    With a basic salary of ${formData.basicSalary.toLocaleString()}, HRA received of ${formData.hraReceived.toLocaleString()},
+                    and rent paid of ${formData.rentPaid.toLocaleString()} in a {formData.cityType === 'metro' ? 'metropolitan' : 'non-metropolitan'} city,
+                    your exempted HRA is ${Math.round(results.exemptedHRA).toLocaleString()} and taxable HRA is ${Math.round(results.taxableHRA).toLocaleString()}.
+                </p>
+            </div>
+
+            {/* Chart */}
+            <InvestmentChart 
+                data={results.chartData}
+                type="bar"
+                stacked={false}
+                height={400}
+                yAxisLabel="Amount ($)"
+                series={[
+                    { key: 'Basic Salary', name: 'Basic Salary', color: '#10B981' },
+                    { key: 'HRA Received', name: 'HRA Received', color: '#3B82F6' },
+                    { key: 'Rent Paid', name: 'Rent Paid', color: '#8B5CF6' },
+                    { key: 'Exempted HRA', name: 'Exempted HRA', color: '#059669' },
+                    { key: 'Taxable HRA', name: 'Taxable HRA', color: '#EF4444' }
+                ]}
+            />
         </div>
     );
 };

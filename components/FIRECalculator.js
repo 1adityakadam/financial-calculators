@@ -1,16 +1,29 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Calculator } from 'lucide-react';
+import InvestmentChart from './InvestmentChart';
+import CalculatorInput from './CalculatorInput';
 
 const FIRECalculator = () => {
-    const [currentAge, setCurrentAge] = useState('');
-    const [retirementAge, setRetirementAge] = useState('');
-    const [monthlyExpenses, setMonthlyExpenses] = useState('');
-    const [currentSavings, setCurrentSavings] = useState('');
-    const [expectedReturn, setExpectedReturn] = useState('');
-    const [inflationRate, setInflationRate] = useState('');
-    const [result, setResult] = useState(null);
+    const [formData, setFormData] = useState({
+        currentAge: 30,
+        retirementAge: 45,
+        monthlyExpenses: 5000,
+        currentSavings: 100000,
+        expectedReturn: 8,
+        inflationRate: 3
+    });
 
-    const calculateFIRE = () => {
+    const [results, setResults] = useState({
+        requiredCorpus: 0,
+        monthlyInvestmentNeeded: 0,
+        futureAnnualExpenses: 0,
+        yearsToRetirement: 0,
+        chartData: []
+    });
+
+    const calculateResults = () => {
+        const { currentAge, retirementAge, monthlyExpenses, currentSavings, expectedReturn, inflationRate } = formData;
         const age = parseFloat(currentAge);
         const retireAge = parseFloat(retirementAge);
         const expenses = parseFloat(monthlyExpenses) * 12; // Annual expenses
@@ -18,10 +31,7 @@ const FIRECalculator = () => {
         const returnRate = parseFloat(expectedReturn) / 100;
         const inflation = parseFloat(inflationRate) / 100;
         
-        if ([age, retireAge, expenses, returnRate, inflation].some(isNaN)) {
-            alert('Please enter valid numbers');
-            return;
-        }
+        if ([age, retireAge, expenses, returnRate, inflation].some(isNaN)) return;
 
         // Calculate years until retirement
         const yearsToRetirement = retireAge - age;
@@ -46,108 +56,172 @@ const FIRECalculator = () => {
             (additionalCorpusNeeded * monthlyRate) / 
             (Math.pow(1 + monthlyRate, totalMonths) - 1);
 
-        setResult({
-            requiredCorpus: requiredCorpus.toFixed(2),
-            monthlyInvestmentNeeded: monthlyInvestmentNeeded.toFixed(2),
-            futureAnnualExpenses: futureAnnualExpenses.toFixed(2),
-            yearsToRetirement
+        // Generate data for the chart
+        const chartData = [];
+        let currentYear = age;
+        let currentValue = savings;
+        let totalInvested = savings;
+        const monthlyInvestment = monthlyInvestmentNeeded;
+
+        while (currentYear <= retireAge + 30) { // Project 30 years past retirement
+            const isRetired = currentYear >= retireAge;
+            
+            if (!isRetired) {
+                // During accumulation phase
+                totalInvested += monthlyInvestment * 12;
+                currentValue = currentValue * (1 + returnRate) + monthlyInvestment * 12;
+            } else {
+                // During retirement phase
+                const yearsSinceRetirement = currentYear - retireAge;
+                const withdrawalAmount = futureAnnualExpenses * Math.pow(1 + inflation, yearsSinceRetirement);
+                currentValue = currentValue * (1 + returnRate) - withdrawalAmount;
+            }
+
+            chartData.push({
+                year: currentYear,
+                portfolio: Math.max(0, currentValue),
+                invested: totalInvested,
+                expenses: isRetired ? futureAnnualExpenses * Math.pow(1 + inflation, currentYear - retireAge) : 0
+            });
+
+            currentYear++;
+        }
+
+        setResults({
+            requiredCorpus,
+            monthlyInvestmentNeeded,
+            futureAnnualExpenses,
+            yearsToRetirement,
+            chartData
         });
     };
 
+    useEffect(() => {
+        calculateResults();
+    }, [formData]);
+
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
     return (
-        <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-6 text-center">FIRE Calculator</h2>
-            
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Current Age</label>
-                    <input
-                        type="number"
-                        value={currentAge}
-                        onChange={(e) => setCurrentAge(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter your current age"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Desired Retirement Age</label>
-                    <input
-                        type="number"
-                        value={retirementAge}
-                        onChange={(e) => setRetirementAge(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter retirement age"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Monthly Expenses (₹)</label>
-                    <input
-                        type="number"
-                        value={monthlyExpenses}
-                        onChange={(e) => setMonthlyExpenses(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter current monthly expenses"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Current Savings (₹)</label>
-                    <input
-                        type="number"
-                        value={currentSavings}
-                        onChange={(e) => setCurrentSavings(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter current savings"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Expected Return Rate (%)</label>
-                    <input
-                        type="number"
-                        value={expectedReturn}
-                        onChange={(e) => setExpectedReturn(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter expected return rate"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Expected Inflation Rate (%)</label>
-                    <input
-                        type="number"
-                        value={inflationRate}
-                        onChange={(e) => setInflationRate(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        placeholder="Enter expected inflation rate"
-                    />
-                </div>
-
-                <button
-                    onClick={calculateFIRE}
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                    Calculate FIRE Numbers
-                </button>
-
-                {result && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-md">
-                        <h3 className="text-lg font-semibold mb-2">Your FIRE Numbers:</h3>
-                        <div className="space-y-2">
-                            <p className="text-sm">Years to Retirement: {result.yearsToRetirement} years</p>
-                            <p className="text-sm">Future Annual Expenses: ₹{result.futureAnnualExpenses}</p>
-                            <p className="text-sm font-semibold">Required Retirement Corpus: ₹{result.requiredCorpus}</p>
-                            <p className="text-sm font-semibold">Required Monthly Investment: ₹{result.monthlyInvestmentNeeded}</p>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-4">
-                            Note: This calculation uses the 4% withdrawal rule and assumes constant inflation and return rates.
-                            Actual results may vary based on market conditions and lifestyle changes.
-                        </p>
-                    </div>
-                )}
+        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+                <Calculator className="text-blue-600" size={28} />
+                <h2 className="text-2xl font-bold text-gray-800">FIRE Calculator</h2>
             </div>
+
+            {/* Results Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="bg-green-50 p-4 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-1">Required Corpus</div>
+                    <div className="text-2xl font-bold text-green-600">
+                        ${Math.round(results.requiredCorpus).toLocaleString()}
+                    </div>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-1">Monthly Investment</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                        ${Math.round(results.monthlyInvestmentNeeded).toLocaleString()}
+                    </div>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg text-center">
+                    <div className="text-sm text-gray-600 mb-1">Years to FIRE</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                        {results.yearsToRetirement}
+                    </div>
+                </div>
+            </div>
+
+            {/* Input Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <CalculatorInput
+                    label="Current Age"
+                    value={formData.currentAge}
+                    onChange={(value) => handleInputChange('currentAge', value)}
+                    type="number"
+                    min="18"
+                    max="80"
+                />
+
+                <CalculatorInput
+                    label="Retirement Age"
+                    value={formData.retirementAge}
+                    onChange={(value) => handleInputChange('retirementAge', value)}
+                    type="number"
+                    min="35"
+                    max="90"
+                />
+
+                <CalculatorInput
+                    label="Monthly Expenses"
+                    value={formData.monthlyExpenses}
+                    onChange={(value) => handleInputChange('monthlyExpenses', value)}
+                    type="currency"
+                    prefix="$"
+                    placeholder="0.00"
+                />
+
+                <CalculatorInput
+                    label="Current Savings"
+                    value={formData.currentSavings}
+                    onChange={(value) => handleInputChange('currentSavings', value)}
+                    type="currency"
+                    prefix="$"
+                    placeholder="0.00"
+                />
+
+                <CalculatorInput
+                    label="Expected Return Rate"
+                    value={formData.expectedReturn}
+                    onChange={(value) => handleInputChange('expectedReturn', value)}
+                    type="number"
+                    suffix="%"
+                    step="0.1"
+                    min="0"
+                    max="20"
+                />
+
+                <CalculatorInput
+                    label="Inflation Rate"
+                    value={formData.inflationRate}
+                    onChange={(value) => handleInputChange('inflationRate', value)}
+                    type="number"
+                    suffix="%"
+                    step="0.1"
+                    min="0"
+                    max="10"
+                />
+            </div>
+
+            {/* Explanation */}
+            <div className="mb-8 p-4 bg-gray-50 rounded-md text-sm text-gray-600">
+                <p>
+                    To retire at age {formData.retirementAge} with monthly expenses of ${formData.monthlyExpenses.toLocaleString()},
+                    you'll need a corpus of ${Math.round(results.requiredCorpus).toLocaleString()}.
+                    Starting with ${formData.currentSavings.toLocaleString()} in savings,
+                    you need to invest ${Math.round(results.monthlyInvestmentNeeded).toLocaleString()} monthly
+                    to reach your FIRE goal in {results.yearsToRetirement} years.
+                    Your annual expenses at retirement will be ${Math.round(results.futureAnnualExpenses).toLocaleString()}.
+                </p>
+            </div>
+
+            {/* Chart */}
+            <InvestmentChart 
+                data={results.chartData}
+                type="line"
+                stacked={false}
+                height={400}
+                yAxisLabel="Amount ($)"
+                series={[
+                    { key: 'portfolio', name: 'Portfolio Value', color: '#8B5CF6' },
+                    { key: 'invested', name: 'Amount Invested', color: '#10B981' },
+                    { key: 'expenses', name: 'Annual Expenses', color: '#EF4444' }
+                ]}
+            />
         </div>
     );
 };

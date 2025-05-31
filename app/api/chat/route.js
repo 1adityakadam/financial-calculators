@@ -58,10 +58,14 @@ function cleanMarkdownFormatting(text) {
 
 export async function POST(req) {
     try {
-        const { messages } = await req.json();
+        const { messages, userId } = await req.json();
         
         if (!messages || !Array.isArray(messages) || messages.length === 0) {
             throw new Error('Invalid messages format');
+        }
+
+        if (!userId || typeof userId !== 'string' || !userId.startsWith('user_')) {
+            throw new Error('Invalid or missing user ID');
         }
 
         // Get the last message
@@ -71,10 +75,10 @@ export async function POST(req) {
         const model = hasImageContent(lastMessage) ? visionModel : textModel;
 
         try {
-            // Prepare the chat content
+            // Prepare the chat content with user context
             const chatContent = [
                 { text: SYSTEM_PROMPT },
-                { text: 'I understand and will act as a financial advisor.' }
+                { text: `I understand and will act as a financial advisor for user session ${userId}.` }
             ];
 
             // Add the user's message

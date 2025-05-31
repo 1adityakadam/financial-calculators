@@ -1,6 +1,6 @@
 'use client';
 import { useState, useCallback, useEffect } from 'react';
-import { MessageCircle, AlertCircle } from 'lucide-react';
+import { MessageCircle, AlertCircle, Trash2 } from 'lucide-react';
 
 export default function FinanceChat({ isDarkMode }) {
     const [messages, setMessages] = useState([]);
@@ -10,19 +10,41 @@ export default function FinanceChat({ isDarkMode }) {
     const [lastMessageTime, setLastMessageTime] = useState(0);
     const [spamWarnings, setSpamWarnings] = useState(0);
     const [isBlocked, setIsBlocked] = useState(false);
+    const [userId, setUserId] = useState('');
+
+    // Generate or retrieve user ID on component mount
+    useEffect(() => {
+        let storedUserId = localStorage.getItem('financeChat_userId');
+        if (!storedUserId) {
+            storedUserId = `user_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`;
+            localStorage.setItem('financeChat_userId', storedUserId);
+        }
+        setUserId(storedUserId);
+    }, []);
 
     // Load messages from localStorage on component mount
     useEffect(() => {
-        const savedMessages = localStorage.getItem('financeChat');
-        if (savedMessages) {
-            setMessages(JSON.parse(savedMessages));
+        if (userId) {
+            const savedMessages = localStorage.getItem(`financeChat_messages_${userId}`);
+            if (savedMessages) {
+                setMessages(JSON.parse(savedMessages));
+            }
         }
-    }, []);
+    }, [userId]);
 
     // Save messages to localStorage whenever they change
     useEffect(() => {
-        localStorage.setItem('financeChat', JSON.stringify(messages));
-    }, [messages]);
+        if (userId) {
+            localStorage.setItem(`financeChat_messages_${userId}`, JSON.stringify(messages));
+        }
+    }, [messages, userId]);
+
+    const handleClearHistory = useCallback(() => {
+        setMessages([]);
+        if (userId) {
+            localStorage.removeItem(`financeChat_messages_${userId}`);
+        }
+    }, [userId]);
 
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
@@ -62,6 +84,7 @@ export default function FinanceChat({ isDarkMode }) {
                 },
                 body: JSON.stringify({
                     messages: newMessages,
+                    userId: userId, // Include userId in the request
                 }),
             });
 
@@ -106,15 +129,29 @@ export default function FinanceChat({ isDarkMode }) {
         } finally {
             setIsLoading(false);
         }
-    }, [input, isLoading, messages, lastMessageTime, spamWarnings, isBlocked]);
+    }, [input, isLoading, messages, lastMessageTime, spamWarnings, isBlocked, userId]);
 
     return (
         <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>
-            <div className="flex items-center gap-2 mb-6">
-                <MessageCircle className={`w-6 h-6 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
-                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                    Financial Assistant (Powered by Gemini)
-                </h2>
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                    <MessageCircle className={`w-6 h-6 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                    <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                        Financial Assistant (Powered by Gemini)
+                    </h2>
+                </div>
+                <button
+                    onClick={handleClearHistory}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${
+                        isDarkMode
+                            ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    } transition-colors duration-200`}
+                    title="Clear chat history"
+                >
+                    <Trash2 className="w-4 h-4" />
+                    Clear History
+                </button>
             </div>
 
             {error && (

@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, Suspense } from 'react'
+import React, { useState, Suspense, useEffect } from 'react'
 import SIPCalculator from '../components/SIPCalculator'
 import FDCalculator from '../components/FDCalculator'
 import CAGRCalculator from '../components/CAGRCalculator'
@@ -13,11 +13,25 @@ import LoanCalculator from '../components/LoanCalculator'
 import MortgageCalculator from '../components/MortgageCalculator'
 import CompoundInterestCalculator from '../components/CompoundInterestCalculator'
 import FinanceChat from '../components/FinanceChat'
+import ChaseAccountLink from '../components/ChaseAccountLink'
 import { useSearchParams } from 'next/navigation'
 
 function CalculatorSelector() {
     const searchParams = useSearchParams()
     const calculator = searchParams.get('calculator')
+    const [isDarkMode, setIsDarkMode] = useState(false)
+
+    useEffect(() => {
+        const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+        setIsDarkMode(darkModeMediaQuery.matches)
+
+        const handleChange = (e) => {
+            setIsDarkMode(e.matches)
+        }
+
+        darkModeMediaQuery.addEventListener('change', handleChange)
+        return () => darkModeMediaQuery.removeEventListener('change', handleChange)
+    }, [])
 
     const getCalculatorComponent = () => {
         switch(calculator) {
@@ -54,34 +68,30 @@ function CalculatorSelector() {
 
     if (!calculator) {
         return (
-            <div className="max-w-4xl mx-auto">
-                <h1 className="text-4xl font-bold text-gray-800 mb-6 text-center">
-                    Welcome to Financial Calculators
-                </h1>
-                <p className="text-lg text-gray-600 mb-8 text-center">
-                    Your comprehensive suite of financial planning tools. Ask our AI assistant about any financial topic or explore our calculators.
-                </p>
+            <div className="max-w-4xl mx-auto space-y-8">
+                <ChaseAccountLink isDarkMode={isDarkMode} />
                 <FinanceChat />
             </div>
         )
     }
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-8">
             {CalculatorComponent}
+            <ChaseAccountLink isDarkMode={isDarkMode} />
         </div>
     )
 }
 
 export default function Home() {
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen bg-emerald-50 dark:bg-gray-900 transition-colors duration-200">
             <div className="container mx-auto py-8 px-4">
                 <Suspense fallback={
                     <div className="max-w-4xl mx-auto text-center">
                         <div className="animate-pulse">
-                            <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
-                            <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                            <div className="h-8 bg-emerald-200 dark:bg-emerald-800 rounded w-3/4 mx-auto mb-4"></div>
+                            <div className="h-4 bg-emerald-200 dark:bg-emerald-800 rounded w-1/2 mx-auto"></div>
                         </div>
                     </div>
                 }>

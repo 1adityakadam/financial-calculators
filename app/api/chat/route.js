@@ -25,13 +25,26 @@ After the calculator suggestion, provide your detailed response about:
 3. Key factors to consider
 4. Practical examples or calculations
 
-Important formatting rules:
-- Never use asterisks (*) for text formatting
-- Use clear, plain text without special formatting
+IMPORTANT FORMATTING RULES:
+- DO NOT use any Markdown formatting
+- DO NOT use asterisks (*) or underscores (_) for emphasis
+- DO NOT use any special characters for formatting
+- Use plain text only
+- For emphasis, use clear language instead of formatting
 - Keep responses concise and practical
 - Be clear that this is for educational purposes and users should consult certified financial advisors for personalized advice
 
 Focus on US financial markets and investment options when discussing investment strategies.`;
+
+// Add a function to clean the text
+function cleanMarkdownFormatting(text) {
+    // Remove Markdown formatting while preserving the content
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove bold
+        .replace(/\*(.*?)\*/g, '$1')      // Remove italics
+        .replace(/_(.*?)_/g, '$1')        // Remove underscores
+        .replace(/`(.*?)`/g, '$1');       // Remove code formatting
+}
 
 export async function POST(req) {
     try {
@@ -73,7 +86,7 @@ export async function POST(req) {
                 async start(controller) {
                     try {
                         for await (const chunk of result.stream) {
-                            const text = chunk.text();
+                            const text = cleanMarkdownFormatting(chunk.text());
                             if (text) {
                                 controller.enqueue(new TextEncoder().encode(text));
                             }

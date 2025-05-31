@@ -82,7 +82,7 @@ const HRACalculator = ({ isDarkMode }) => {
         <div className={`max-w-4xl mx-auto p-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg transition-colors duration-200`}>
             <div className="flex items-center gap-3 mb-6">
                 <Calculator className={`${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} size={28} />
-                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>HRA Calculator</h2>
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>House Rent Allowance (HRA) Calculator</h2>
             </div>
 
             {/* Results Summary */}

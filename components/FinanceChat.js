@@ -68,6 +68,9 @@ export default function FinanceChat({ isDarkMode }) {
                     return;
                 }
             }
+            console.log('Attempting to save message:', userId, message, role);
+    const result = await saveChatMessage(userId, { message: userMessage }, 'user');
+    console.log('Message saved successfully:', result);
 
             setLastMessageTime(currentTime);
             const userMessage = input.trim();

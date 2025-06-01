@@ -13,6 +13,9 @@ export const saveChatMessage = async (userId, message, role) => {
       ])
 
     if (error) throw error
+    if (!data || data.length === 0) {
+      throw new Error('Failed to save message: No data returned from Supabase')
+    }
     return data[0]
   } catch (error) {
     console.error('Error saving chat message:', error)

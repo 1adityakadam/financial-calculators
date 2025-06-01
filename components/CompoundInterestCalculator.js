@@ -45,6 +45,13 @@ const CompoundInterestCalculator = ({ isDarkMode }) => {
     const totalPoints = years * pointsPerYear;
     const timeStep = compoundingFrequency / pointsPerYear;
 
+    setResults({
+      futureValue,
+      totalContributions,
+      totalInterest,
+      chartData
+    });
+
     for (let i = 0; i <= totalPoints; i++) {
       const periods = i * timeStep;
       const timeInYears = periods / compoundingFrequency;

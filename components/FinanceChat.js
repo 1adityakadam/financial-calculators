@@ -1,6 +1,8 @@
 'use client';
 import { useState, useCallback, useEffect } from 'react';
 import { MessageCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { saveChatResponse } from '../utils/chatStorage';
+import { supabase } from '../lib/supabase';
 
 export default function FinanceChat({ isDarkMode }) {
     const [messages, setMessages] = useState([]);
@@ -50,78 +52,62 @@ export default function FinanceChat({ isDarkMode }) {
         e.preventDefault();
         if (!input.trim() || isLoading || isBlocked) return;
 
-        // Check for spam
-        const currentTime = Date.now();
-        const timeDiff = currentTime - lastMessageTime;
-
-        if (timeDiff < 2000) { // Less than 2 seconds
-            if (spamWarnings >= 2) {
-                setIsBlocked(true);
-                setError("You have been blocked due to multiple spam attempts. Please refresh the page to continue.");
-                return;
-            } else {
-                setSpamWarnings(prev => prev + 1);
-                setError(`Warning ${spamWarnings + 1}/2: Messages sent too quickly. Please wait a moment.`);
-                return;
-            }
-        }
-
-        setLastMessageTime(currentTime);
-        const userMessage = input.trim();
-        setInput('');
-        setIsLoading(true);
-        setError(null);
-
-        // Add user message to chat
-        const newMessages = [...messages, { role: 'user', content: userMessage }];
-        setMessages(newMessages);
-
         try {
-            const response = await fetch('/api/chat', {
+            const currentTime = Date.now();
+            const timeDiff = currentTime - lastMessageTime;
+
+            // Spam check
+            if (timeDiff < 2000) { // Less than 2 seconds
+                if (spamWarnings >= 2) {
+                    setIsBlocked(true);
+                    setError("You have been blocked due to multiple spam attempts. Please refresh the page to continue.");
+                    return;
+                } else {
+                    setSpamWarnings(prev => prev + 1);
+                    setError(`Warning ${spamWarnings + 1}/2: Messages sent too quickly. Please wait a moment.`);
+                    return;
+                }
+            }
+
+            setLastMessageTime(currentTime);
+            const userMessage = input.trim();
+            setInput('');
+            setIsLoading(true);
+            setError(null);
+
+            // Save user message to Supabase
+            await saveChatResponse('finance_assistant', { userMessage }, { userId });
+
+            // Add user message to chat
+            const newMessages = [...messages, { role: 'user', content: userMessage }];
+            setMessages(newMessages);
+
+            // Get assistant response
+            const response = await fetch('/api/finance-assistant', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    messages: newMessages,
-                    userId: userId, // Include userId in the request
-                }),
+                    message: userMessage,
+                    userId: userId,
+                    history: messages
+                })
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.details || 'Failed to get response');
+                throw new Error('Failed to get response');
             }
 
-            // Handle streaming response
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let assistantMessage = '';
+            const data = await response.json();
+            setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
 
-            // Add an initial assistant message that we'll update
-            setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+            // Save assistant response to Supabase
+            await saveChatResponse('finance_assistant', { userMessage }, { userId, response: data.response });
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = decoder.decode(value);
-                if (chunk) {
-                    assistantMessage += chunk;
-                    // Update the last message (assistant's message) with the new content
-                    setMessages(prev => {
-                        const updated = [...prev];
-                        updated[updated.length - 1] = {
-                            role: 'assistant',
-                            content: assistantMessage,
-                        };
-                        return updated;
-                    });
-                }
-            }
         } catch (error) {
             console.error('Error:', error);
-            setError(error.message);
+            setError('Failed to process your request. Please try again.');
             setMessages(prev => [...prev, {
                 role: 'assistant',
                 content: `I apologize, but I encountered an error: ${error.message}. Please try again.`,

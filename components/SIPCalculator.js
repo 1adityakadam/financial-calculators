@@ -49,38 +49,6 @@ export default function SIPCalculator({ isDarkMode }) {
       const annualRate = expectedReturn / 100
       futureValue = lumpSumAmount * Math.pow(1 + annualRate, timePeriod)
       investedAmount = lumpSumAmount
-    }
-
-    setResults({
-      investedAmount: Math.round(investedAmount),
-      returnsGenerated: Math.round(futureValue - investedAmount),
-      totalAmount: Math.round(futureValue),
-      chartData
-    });
-
-    if (method === 'sip') {
-      // SIP Formula: FV = P * {[(1 + r)^n - 1] / r} * (1 + r)
-      futureValue = monthlyAmount * (((Math.pow(1 + monthlyRate, totalMonths) - 1) / monthlyRate) * (1 + monthlyRate))
-      investedAmount = monthlyAmount * totalMonths
-
-      // Generate year-wise data for SIP
-      for (let year = 1; year <= timePeriod; year++) {
-        const monthsCompleted = year * 12
-        const yearlyInvested = monthlyAmount * monthsCompleted
-        const yearlyFV = monthlyAmount * (((Math.pow(1 + monthlyRate, monthsCompleted) - 1) / monthlyRate) * (1 + monthlyRate))
-        
-        chartData.push({
-          year,
-          invested: Math.round(yearlyInvested),
-          returns: Math.round(yearlyFV - yearlyInvested),
-          total: Math.round(yearlyFV)
-        })
-      }
-    } else {
-      // Lump Sum Formula: FV = P * (1 + r)^t
-      const annualRate = expectedReturn / 100
-      futureValue = lumpSumAmount * Math.pow(1 + annualRate, timePeriod)
-      investedAmount = lumpSumAmount
 
       // Generate year-wise data for Lump Sum
       for (let year = 1; year <= timePeriod; year++) {

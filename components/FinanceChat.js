@@ -168,15 +168,27 @@ export default function FinanceChat({ isDarkMode }) {
                 {messages.length === 0 && (
                     <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-emerald-50 text-emerald-800'}`}>
                         <p className="font-semibold mb-2">Welcome to your Financial Assistant! 👋</p>
-                        <p>I can help you with:</p>
+                        <p>Let's help you with your investment journey!</p>
+                        <p className="mt-2">Do you have an investment strategy in mind? If not, I can help you explore our calculators:</p>
                         <ul className="list-disc list-inside mt-2 space-y-1">
-                            <li>Investment calculations and strategies</li>
-                            <li>Tax planning and optimization</li>
-                            <li>Retirement planning (FIRE, pension)</li>
-                            <li>Loan and mortgage calculations</li>
-                            <li>General financial advice</li>
+                            <li>Compound Interest Calculator - For long-term savings and investments</li>
+                            <li>SIP Calculator - For systematic investment planning</li>
+                            <li>Mutual Fund Calculator - For mutual fund investments</li>
+                            <li>FIRE Calculator - For financial independence and retirement</li>
+                            <li>Loan Calculator - For loan and mortgage planning</li>
+                            <li>FDR Calculator - For fixed deposits</li>
+                            <li>RD Calculator - For recurring deposits</li>
+                            <li>Tax Calculator - For tax planning and optimization</li>
+                            <li>HRA Calculator - For house rent allowance benefits</li>
+                            <li>Mortgage Calculator - For home loan planning</li>
                         </ul>
-                        <p className="mt-2">How can I assist you today?</p>
+                        <p className="mt-2">Would you like to:</p>
+                        <ul className="list-disc list-inside mt-2 space-y-1">
+                            <li>Discuss a specific calculator and its usage?</li>
+                            <li>Learn about investment strategies using these calculators?</li>
+                            <li>Get help with financial planning?</li>
+                        </ul>
+                        <p className="mt-2">Please let me know how you'd like to proceed!</p>
                     </div>
                 )}
                 {messages.map((message, i) => (

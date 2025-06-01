@@ -76,7 +76,7 @@ export default function FinanceChat({ isDarkMode }) {
             setError(null);
 
             // Save user message to Supabase
-            await saveChatResponse('finance_assistant', { userMessage }, { userId });
+            await saveChatMessage(userId, { message: userMessage }, 'user');
 
             // Add user message to chat
             const newMessages = [...messages, { role: 'user', content: userMessage }];
@@ -103,7 +103,7 @@ export default function FinanceChat({ isDarkMode }) {
             setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
 
             // Save assistant response to Supabase
-            await saveChatResponse('finance_assistant', { userMessage }, { userId, response: data.response });
+            await saveChatMessage(userId, { message: data.response }, 'assistant');
 
         } catch (error) {
             console.error('Error:', error);

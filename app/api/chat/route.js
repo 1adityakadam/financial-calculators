@@ -63,7 +63,8 @@ IMPORTANT FORMATTING RULES:
 
 Focus on US financial markets and investment options when discussing investment strategies.
 
-Remember: If the user's question is not related to finance, ALWAYS respond with the non-finance message above.`;
+Remember: If the user's question is not related to finance, ALWAYS respond with the non-finance message above.
+Remember: the users id should not be shown to the user, it should be used for internal purposes only.`;
 
 // Add a function to clean the text
 function cleanMarkdownFormatting(text) {

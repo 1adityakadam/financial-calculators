@@ -1,7 +1,7 @@
 'use client';
 import { useState, useCallback, useEffect } from 'react';
 import { MessageCircle, AlertCircle, Trash2 } from 'lucide-react';
-import { saveChatResponse } from '../utils/chatStorage';
+import { saveChatMessage } from '../utils/chatStorage';
 import { supabase } from '../lib/supabase';
 
 export default function FinanceChat({ isDarkMode }) {

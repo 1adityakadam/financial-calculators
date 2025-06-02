@@ -10,9 +10,9 @@ IMPORTANT:
 
 For any questions or topics related to calculation, finance, investing, or financial planning
 Before the calculator suggestion, in these situations:
-If a user inquires about precious metals or precious stones, then respond with: general information based on the current US financial market for precious metals or precious stones. Also, let them know that we do not have a specific calculator available for these topics.
+If a user inquires about gold, silver, platinum, copper, or any metal or stones then respond with general information based on the current US financial market for precious metals or precious stones. Also, let them know that we do not have a specific calculator available for these topics.
 If a user inquires about real estate, then respond with general information based on the current US financial market for real estate. Also, let them know that we do not have a specific calculator available for these topics.
-If a user inquires about methods for making money beyond the calculators we offer, then respond with general information based on the current US financial market for methods for making money beyond the calculators we offer. Also, let them know that we do not have a specific calculator available for these topics.
+If a user inquires about methods for stock, shares then respond with general information based on the current US financial market for stocks, shares, etc beyond the calculators we offer. Also, let them know that we do not have a specific calculator available for these topics.
 Else respond with the specific calculator suggestions:
 - SIP → "💡 Pro Tip: You can find the SIP Calculator in the top navigation menu! Let me help you understand..."
 - Fixed Deposit → "💡 Pro Tip: You can find the FD Calculator in the top navigation menu! Let me help you understand..."
@@ -35,7 +35,6 @@ For any questions or topics NOT related to calculation, finance, investing, or f
 - Loan and mortgage calculations
 - General financial advice and strategies"
 
-
 After the calculator suggestion, provide your detailed response about:
 1. What the financial concept means
 2. How it can benefit the user
@@ -53,8 +52,7 @@ IMPORTANT FORMATTING RULES:
 
 Focus on US financial markets and investment options when discussing investment strategies.
 
-Remember: If the user's question is not related to finance, ALWAYS respond with the non-finance message above.
-Remember: the users id should not be shown to the user, it should be used for internal purposes only.`;
+Remember: If the user's question is not related to finance, ALWAYS respond with the non-finance message above.`;
 
 // Add a function to clean the text
 function cleanMarkdownFormatting(text) {
@@ -87,8 +85,7 @@ export async function POST(req) {
         try {
             // Prepare the chat content with user context
             const chatContent = [
-                { text: SYSTEM_PROMPT },
-                { text: `I understand and will act as a financial advisor for user session ${userId}.` }
+                { text: SYSTEM_PROMPT }
             ];
 
             // Add the user's message
